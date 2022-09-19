@@ -81,6 +81,12 @@ class Player(pygame.sprite.Sprite):
         if self.rect.left > WIDTH:
             self.rect.right = 2
             self.rect.y-=5
+        #for now fall to top, maybe die later
+        if self.rect.top > HEIGHT:
+            self.rect.bottom = 2
+        #also let jump through ceiling, w/ current map not really aplicable
+        if self.rect.bottom < 0:
+            self.rect.top = HEIGHT-2
 
     def calc_grav(self):
         """ Calculate effect of gravity. """
