@@ -9,7 +9,7 @@ class Player(pygame.sprite.Sprite):
         self.surf = pygame.image.load("images/stick_man.png")
         self.rect = self.surf.get_rect(center = (xStart, yStart))
         self.yVel = 0
-        self.xVel = 10
+        self.xVel = 8
         self.acc = 0
         self.jumpCount = 40
         self.isJumping = False
@@ -25,7 +25,6 @@ class Player(pygame.sprite.Sprite):
         if pressedKeys[upKey]:
             if self.isJumping == False and platform_hit_list != []:
                 self.jumpCount = 0
-                self.oldY = self.rect.y
                 self.isJumping =True
         # Keep player on the screen
         if self.rect.right < 0:
@@ -40,7 +39,7 @@ class Player(pygame.sprite.Sprite):
             self.yVel = 0
 
         if self.isJumping and self.jumpCount == 1:
-            self.yVel = -15
+            self.yVel = -20
         if self.jumpCount < 19:            
             self.jumpCount+=1
         else:
