@@ -9,46 +9,88 @@ class Player(pygame.sprite.Sprite):
         self.surf = pygame.image.load("images/stick_man.png")
         self.rect = self.surf.get_rect(center = (xStart, yStart))
         self.yVel = 0
-        self.xVel = 8
-        self.acc = 0
-        self.jumpCount = 40
+        self.xVel = 0
+        self.jumpHeight = 20
+        self.gravPower = 2
+        self.speed = 10
         self.isJumping = False
 
     # Move the sprite based on user keypresses
-    def update(self, pressedKeys, leftKey, rightKey, upKey):
+    def update(self, pressedKeys, keydown, keyup, leftKey, rightKey, upKey):
         platform_hit_list = pygame.sprite.spritecollide(self, all_platforms, False)
         
-        if pressedKeys[leftKey]:
-            self.rect.move_ip(-self.xVel, 0)
-        if pressedKeys[rightKey]:
-            self.rect.move_ip(self.xVel, 0)
-        if pressedKeys[upKey]:
-            if self.isJumping == False and platform_hit_list != []:
-                self.jumpCount = 0
-                self.isJumping =True
-        # Keep player on the screen
-        if self.rect.right < 0:
-            self.rect.left = WIDTH
-        if self.rect.left > WIDTH:
-            self.rect.right = 0
+        self.calc_grav()
 
-        if platform_hit_list == []:
-            self.acc = 2
-        else:
-            self.acc = -4
-            self.yVel = 0
+        if keydown:
+            if pressedKeys[leftKey]:
+                self.xVel = -self.speed
+            if pressedKeys[rightKey]:
+                self.xVel = self.speed
 
-        if self.isJumping and self.jumpCount == 1:
-            self.yVel = -20
-        if self.jumpCount < 19:            
-            self.jumpCount+=1
-        else:
-            self.isJumping = False
+            if pressedKeys[upKey]:
+                # move down a bit and see if there is a platform below us.
+                self.rect.y += 2
+                platform_hit_list = pygame.sprite.spritecollide(self, all_platforms, False)
+                self.rect.y -= 2
+         
+                # If it is ok to jump, set our speed upwards
+                if platform_hit_list != []:
+                    self.yVel = -self.jumpHeight
+        elif keyup:
+            if event.key == leftKey:
+                self.xVel = 0
+            if event.key == rightKey:
+                self.xVel = 0
 
-        self.yVel += self.acc
+        # Move left/right
+        self.rect.move_ip(self.xVel,0)
+
+        # See if we hit anything
+        platform_hit_list = pygame.sprite.spritecollide(self, all_platforms, False)
+        for platform in platform_hit_list:
+            # If we are moving right,
+            # set our right side to the left side of the item we hit
+            if self.xVel > 0:
+                self.rect.right = platform.rect.left
+            elif self.xVel < 0:
+                # Otherwise if we are moving left, do the opposite.
+                self.rect.left = platform.rect.right
+ 
+
+        #move up/down
         self.rect.move_ip(0,self.yVel)
 
-numPlatforms = 3
+        # Check and see if we hit anything
+        platform_hit_list = pygame.sprite.spritecollide(self, all_platforms, False)
+        
+        for platform in platform_hit_list:
+            # Reset our position based on the top/bottom of the object.
+            if self.yVel > 0:
+                self.rect.bottom = platform.rect.top
+            elif self.yVel < 0:
+                self.rect.top = platform.rect.bottom
+ 
+            # Stop our vertical movement
+            self.yVel = 0
+        
+        # Keep player on the screen
+        if self.rect.right < 0:
+            self.rect.left = WIDTH-2
+            #add a little height so we can move smoothly from platforms on either side
+            self.rect.y-=5
+        if self.rect.left > WIDTH:
+            self.rect.right = 2
+            self.rect.y-=5
+
+    def calc_grav(self):
+        """ Calculate effect of gravity. """
+        if self.yVel == 0:
+            self.yVel = 1
+        else:
+            self.yVel += self.gravPower
+
+
+numPlatforms = 8
 class Platform(pygame.sprite.Sprite):
     def __init__(self, xPos, yPos):
         super(Platform, self).__init__()
@@ -71,7 +113,12 @@ for i in range(numPlayers):
 
 platforms = []
 for i in range(numPlatforms):
-    platforms.append(Platform((i*400)+100, 500))
+    if i<3:
+        platforms.append(Platform((i*400)+100, 500))
+    elif i<5:
+        platforms.append(Platform(((i-3)*400)+300, 400))
+    elif i<9:
+        platforms.append(Platform(((i-5)*400)+100, 300))
 
 #deal with sprite groups
 all_players = pygame.sprite.Group()
@@ -94,18 +141,22 @@ clock = pygame.time.Clock()
 
 running = True
 while running:
-    
+    keydown = False
+    keyup = False
+
     # for loop through the event queue
     for event in pygame.event.get():
+        # Check for QUIT event. If QUIT, then set running to false.
+        if event.type == pygame.QUIT:
+            running = False
         # Check for KEYDOWN event
         if event.type == pygame.KEYDOWN:
+            keydown = True
             # If the Esc key is pressed, then exit the main loop
             if event.key == pygame.K_ESCAPE:
                 running = False
-        # Check for QUIT event. If QUIT, then set running to false.
-        elif event.type == pygame.QUIT:
-            running = False
-
+        elif event.type == pygame.KEYUP:
+            keyup = True
     # Get all the keys currently pressed
     pressedKeys = pygame.key.get_pressed()
 
@@ -113,8 +164,8 @@ while running:
     screen.fill((0, 0, 0))
 
     #update players
-    players[0].update(pressedKeys, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP)
-    players[1].update(pressedKeys, pygame.K_a, pygame.K_d, pygame.K_w)
+    players[0].update(pressedKeys, keydown, keyup, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP)
+    players[1].update(pressedKeys, keydown, keyup, pygame.K_a, pygame.K_d, pygame.K_w)
 
     # Draw all sprites
     for entity in all_sprites:
