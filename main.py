@@ -1,8 +1,6 @@
 import pygame
 
 numPlayers = 2
-
-
 class Player(pygame.sprite.Sprite):
 
     def __init__(self, xStart, yStart):
@@ -12,6 +10,7 @@ class Player(pygame.sprite.Sprite):
 
         self.yVel = 0
         self.xVel = 0
+        self.isAlive = True
 
         self.jumpHeight = 20
         self.gravPower = 2
@@ -23,32 +22,34 @@ class Player(pygame.sprite.Sprite):
         self.shotCounter = 0
 
     # Move the sprite based on user keypresses
-    def update(self, pressedKeys, keydown, keyup, leftKey, rightKey, upKey,
-               shootKey):
+    def update(self, pressedKeys, keys):
+
+        leftKey = keys[0]
+        rightKey = keys[1]
+        upKey = keys[2]
+
         platform_hit_list = pygame.sprite.spritecollide(self, platforms, False)
 
+        self.xVel = 0
         self.calc_grav()
 
-        if keydown:
-            if pressedKeys[leftKey]:
-                self.xVel = -self.speed
-            if pressedKeys[rightKey]:
-                self.xVel = self.speed
+        #if keydown:
+        if pressedKeys[leftKey]:
+            self.xVel = -self.speed
+        if pressedKeys[rightKey]:
+            self.xVel = self.speed
 
-            if pressedKeys[upKey]:
-                # move down a bit and see if there is a platform below us.
-                self.rect.y += 2
-                platform_hit_list = pygame.sprite.spritecollide(
-                    self, platforms, False)
-                self.rect.y -= 2
+        if pressedKeys[upKey]:
+            # move down a bit and see if there is a platform below us.
+            self.rect.y += 2
+            platform_hit_list = pygame.sprite.spritecollide(
+                self, platforms, False)
+            self.rect.y -= 2
 
-                # If it is ok to jump, set our speed upwards
-                if platform_hit_list != []:
-                    self.yVel = -self.jumpHeight
-        elif keyup:
-            if event.key == leftKey or event.key == rightKey:
-                self.xVel = 0
-
+            # If it is ok to jump, set our speed upwards
+            if platform_hit_list != []:
+                self.yVel = -self.jumpHeight
+ 
         # Move left/right
         self.rect.move_ip(self.xVel, 0)
 
@@ -117,18 +118,19 @@ class Player(pygame.sprite.Sprite):
             self.yVel += self.gravPower
 
 
-bullets = []
+bullets = pygame.sprite.Group()
 
 
 class Bullet(pygame.sprite.Sprite):
 
-    def __init__(self, center, dir):
+    def __init__(self, center, dir, playerNumber):
         super(Bullet, self).__init__()
         self.surf = pygame.image.load("images/bullet.png")
         self.rect = self.surf.get_rect(center=center)
         self.counter = 0
         self.dir = dir
-        self.speed = 12
+        self.speed = 20
+        self.playerId = playerNumber
 
     def shoot(self):
         if self.dir == "left":
@@ -137,9 +139,15 @@ class Bullet(pygame.sprite.Sprite):
             self.rect.move_ip(self.speed, 0)
 
 
+def collision_check(sprite1, sprite2):
+    """Return True if sprites are colliding, unless it's the same sprite."""
+    if sprite1 is not sprite2:
+        return sprite1.rect.colliderect(sprite2.rect)
+    else:  # Both sprites are the same object, so return False.
+        return False
+
+
 numPlatforms = 8
-
-
 class Platform(pygame.sprite.Sprite):
 
     def __init__(self, xPos, yPos):
@@ -158,6 +166,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 #create players
 players = []
+
 for i in range(numPlayers):
     players.append(Player((i * 400) + 100, 400))
 
@@ -186,12 +195,13 @@ while running:
             running = False
         # Check for KEYDOWN event
         if event.type == pygame.KEYDOWN:
-            keydown = True
             # If the Esc key is pressed, then exit the main loop
             if event.key == pygame.K_ESCAPE:
                 running = False
-        elif event.type == pygame.KEYUP:
-            keyup = True
+            #Restart if r key is pressed
+            if event.key == pygame.K_r:
+                for player in players:
+                    player.isAlive = True
 
     # Get all the keys currently pressed
     pressedKeys = pygame.key.get_pressed()
@@ -200,53 +210,55 @@ while running:
     screen.fill((0, 0, 0))
 
     #deal with bullets, i know player movement should be here (tbf)
-    for j, player in enumerate(players):
-        if j == 0:
-            #update players
-            players[0].update(pressedKeys, keydown, keyup, pygame.K_LEFT,
-                              pygame.K_RIGHT, pygame.K_UP, pygame.K_SPACE)
-        if j == 1:
-            players[1].update(pressedKeys, keydown, keyup, pygame.K_a,
-                              pygame.K_d, pygame.K_w, pygame.K_g)
-
-        if pressedKeys[pygame.K_SPACE] and player.shotCounter > 30:
-            print("shoot")
-            if player.dir == "left":
-                bullets.append(
-                    Bullet((player.rect.x - 5, player.rect.y +
-                            (player.rect.height / 2)), player.dir))
+    for playerNum, player in enumerate(players):
+        keys = []
+        if player.isAlive:
+            if playerNum == 0:
+                keys = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_SPACE]
             else:
-                bullets.append(
-                    Bullet((player.rect.right + 5, player.rect.y +
-                            (player.rect.height / 2)), player.dir))
-            player.shotCounter = 0
-        player.shotCounter += 1
+                keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
 
-        #if bullets is not None:
-        if pygame.sprite.spritecollide(player, bullets, False):
-            players.pop(j)
-            print("HIT!")
+            if pressedKeys[keys[3]] and player.shotCounter > 20:
+                print("shoot")
+                if player.dir == "left":
+                    bullets.add(
+                        Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
+                else:
+                    bullets.add(
+                        Bullet((player.rect.right, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
 
-        for i, bullet in enumerate(bullets):
-            bullet.shoot()
-            if bullet.rect.left > WIDTH or bullet.rect.right < 0 or pygame.sprite.spritecollide(
-                    bullet, platforms, False):
-                bullets.pop(i)
+                player.shotCounter = 0
 
-    #update players
-    # players[0].update(pressedKeys, keydown, keyup, pygame.K_LEFT,
-    #                   pygame.K_RIGHT, pygame.K_UP, pygame.K_SPACE)
-    # players[1].update(pressedKeys, keydown, keyup, pygame.K_a, pygame.K_d,
-    #                   pygame.K_w, pygame.K_g)
+            player.shotCounter += 1
+
+            #deal with bullet collisions
+            for i, bullet in enumerate(bullets):
+                #kill player, I cant decide if I want people to be able to kill themselves, will take gameplay testing
+                if pygame.sprite.collide_rect(player, bullet) and playerNum != bullet.playerId:
+                    player.isAlive = False
+                    bullet.kill()
+                    print("HIT!")
+
+            #if bullets hit remove them tbh this is copied code probably could do other collison checks
+            #with this, platforms?
+            pygame.sprite.groupcollide(bullets, bullets, True, True, collided=collision_check)
+
+            #update players
+            player.update(pressedKeys, keys)
 
     # Draw all sprites
     for platform in platforms:
         screen.blit(platform.surf, platform.rect)
 
     for player in players:
-        screen.blit(player.surf, player.rect)
+        if player.isAlive:
+            screen.blit(player.surf, player.rect)
 
     for bullet in bullets:
+        bullet.shoot()
+        #keep bullets on screen and out of platforms
+        if bullet.rect.left > WIDTH or bullet.rect.right < 0 or pygame.sprite.spritecollide(bullet, platforms, False):
+            bullet.kill()
         screen.blit(bullet.surf, bullet.rect)
 
     # Update the display
