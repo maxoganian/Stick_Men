@@ -5,7 +5,7 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self, xStart, yStart):
         super(Player, self).__init__()
-        self.surf = pygame.image.load("images/stick_man.png")
+        self.surf = pygame.image.load("images/stick_man1.png")
         self.rect = self.surf.get_rect(center=(xStart, yStart))
 
         self.yVel = 0
@@ -20,6 +20,7 @@ class Player(pygame.sprite.Sprite):
         self.dir = "right"
 
         self.shotCounter = 0
+        self.kills = 0
 
     # Move the sprite based on user keypresses
     def update(self, pressedKeys, keys):
@@ -71,14 +72,6 @@ class Player(pygame.sprite.Sprite):
         elif self.xVel > 0:
             self.dir = "right"
 
-        #make the image the right way, this is all our animation rn
-        if self.dir == "right" and self.xVel != 0:
-            self.surf = pygame.image.load("images/stick_man_right.png")
-        elif self.dir == "left" and self.xVel != 0:
-            self.surf = pygame.image.load("images/stick_man_left.png")
-        else:
-            self.surf = pygame.image.load("images/stick_man.png")
-
         #move up/down
         self.rect.move_ip(0, self.yVel)
 
@@ -109,7 +102,7 @@ class Player(pygame.sprite.Sprite):
         #also let jump through ceiling, w/ current map not really aplicable
         if self.rect.bottom < 0:
             self.rect.top = HEIGHT - 2
-
+    
     def calc_grav(self):
         """ Calculate effect of gravity. """
         if self.yVel == 0:
@@ -125,7 +118,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def __init__(self, center, dir, playerNumber):
         super(Bullet, self).__init__()
-        self.surf = pygame.image.load("images/bullet.png")
+        self.surf = pygame.image.load("images/bullet" + str(playerNum+1) + ".png")
         self.rect = self.surf.get_rect(center=center)
         self.shotCounter = 0
         self.dir = dir
@@ -185,6 +178,11 @@ for i in range(numPlatforms):
 # Setup the clock
 clock = pygame.time.Clock()
 
+#set up the font
+pygame.font.init()
+
+font = pygame.font.SysFont(None, 25)
+
 running = True
 while running:
 
@@ -218,8 +216,15 @@ while running:
             else:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
 
+            #make the image the right way, this is all our animation rn
+            if player.dir == "right" and player.xVel != 0:
+                player.surf = pygame.image.load("images/stick_man_right" + str(playerNum+1) + ".png")
+            elif player.dir == "left" and player.xVel != 0:
+                player.surf = pygame.image.load("images/stick_man_left" + str(playerNum+1) + ".png")
+            else:
+                player.surf = pygame.image.load("images/stick_man" + str(playerNum+1) + ".png")
+
             if pressedKeys[keys[3]] and player.shotCounter > 20:
-                print("shoot")
                 if player.dir == "left":
                     bullets.add(
                         Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
@@ -236,8 +241,8 @@ while running:
                 #kill player, I cant decide if I want people to be able to kill themselves, will take gameplay testing
                 if pygame.sprite.collide_rect(player, bullet) and playerNum != bullet.playerId:
                     player.isAlive = False
+                    players[bullet.playerId].kills+=1
                     bullet.kill()
-                    print("HIT!")
 
             #if bullets hit remove them tbh this is copied code probably could do other collison checks
             #with this, platforms?
@@ -245,6 +250,28 @@ while running:
 
             #update players
             player.update(pressedKeys, keys)
+
+            #use this block to write kills above the players
+            text_surf = font.render(str(player.kills), True, (255,255,255))
+            text_rect = text_surf.get_rect(center=((player.rect.x + (player.rect.width/2)), player.rect.y-15))
+            
+            #write the kills to the screen
+            screen.blit(text_surf, text_rect)
+
+        #print kills
+        #use this to print kills at top of screen
+        # text = str(player.kills)
+        # if playerNum == 0:
+        #     color = (255,0,0)
+        #     text += " :"
+        # else:
+        #     color = (0,0,255)
+
+        # text_surf = font.render((text), True, color)
+        # text_rect = text_surf.get_rect(center=(((WIDTH/2)+((playerNum+1)*20)), 20))
+        ##write the kills to the screen
+        #screen.blit(text_surf, text_rect)
+        
 
     # Draw all sprites
     for platform in platforms:
