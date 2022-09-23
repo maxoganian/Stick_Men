@@ -127,7 +127,7 @@ class Bullet(pygame.sprite.Sprite):
         super(Bullet, self).__init__()
         self.surf = pygame.image.load("images/bullet.png")
         self.rect = self.surf.get_rect(center=center)
-        self.counter = 0
+        self.shotCounter = 0
         self.dir = dir
         self.speed = 20
         self.playerId = playerNumber
@@ -137,7 +137,10 @@ class Bullet(pygame.sprite.Sprite):
             self.rect.move_ip(-self.speed, 0)
         elif self.dir == "right":
             self.rect.move_ip(self.speed, 0)
-
+        if self.rect.left > WIDTH:
+            self.rect.right = 2
+        if self.rect.right < 0:
+            self.rect.left = WIDTH - 2
 
 def collision_check(sprite1, sprite2):
     """Return True if sprites are colliding, unless it's the same sprite."""
@@ -184,9 +187,6 @@ clock = pygame.time.Clock()
 
 running = True
 while running:
-
-    keydown = False
-    keyup = False
 
     # for loop through the event queue
     for event in pygame.event.get():
@@ -257,8 +257,9 @@ while running:
     for bullet in bullets:
         bullet.shoot()
         #keep bullets on screen and out of platforms
-        if bullet.rect.left > WIDTH or bullet.rect.right < 0 or pygame.sprite.spritecollide(bullet, platforms, False):
+        if pygame.sprite.spritecollide(bullet, platforms, False) or bullet.shotCounter > 40:
             bullet.kill()
+        bullet.shotCounter+=1
         screen.blit(bullet.surf, bullet.rect)
 
     # Update the display
