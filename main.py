@@ -249,16 +249,19 @@ while running:
     for playerNum, player in enumerate(players):
         keys = []
         joys = []
+        
+        if useJoysticks:
+            j = joysticks[playerNum]
+            joys = [j.get_axis(0), j.get_axis(1), j.get_button(JOY_BTN_CENTER)]
+            #respawn player
+            if j.get_button(JOY_BTN_PLAYER):
+                player.isAlive = True
 
         if player.isAlive:
             if playerNum == 0:
                 keys = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_SPACE]
             else:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
-            if useJoysticks:
-                j = joysticks[playerNum]
-                joys = [j.get_axis(0), j.get_axis(1), 
-                        j.get_button(JOY_BTN_CENTER), j.get_button(JOY_BTN_PLAYER)]
 
             #make the image the right way, this is all our animation rn
             if player.dir == "right" and player.xVel != 0:
@@ -304,11 +307,8 @@ while running:
             
             #write the kills to the screen
             screen.blit(text_surf, text_rect)
-        #respawn player
-        if useJoysticks:
-            if joys[3]:
-                player.isAlive = True
-                
+        
+
         #use this to print kills at top of screen
         # text = str(player.kills)
         # if playerNum == 0:
