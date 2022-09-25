@@ -237,7 +237,7 @@ while running:
     if useJoysticks: 
         if joysticks[0].get_button(JOY_BTN_COIN) and joysticks[0].get_button(JOY_BTN_PLAYER):
             running = False
-        if joysticks[0]:
+        if joysticks[0].get_button(JOY_BTN_PLAYER):
             for player in players:
                     player.isAlive = True
 
@@ -282,6 +282,8 @@ while running:
                 if useJoysticks:
                     if joys[2]:
                         bullets.add(Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
+                        player.shotCounter = 0
+
             player.shotCounter += 1
 
             #deal with bullet collisions
