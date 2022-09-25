@@ -34,13 +34,12 @@ class Player(pygame.sprite.Sprite):
         self.xVel = 0
         self.calc_grav()
 
-        #if keydown:
-        if pressedKeys[leftKey]:
+        if pressedKeys[leftKey] or leftJoy:
             self.xVel = -self.speed
-        if pressedKeys[rightKey]:
+        if pressedKeys[rightKey] or rightJoy:
             self.xVel = self.speed
 
-        if pressedKeys[upKey]:
+        if pressedKeys[upKey] or upJoy:
             # move down a bit and see if there is a platform below us.
             self.rect.y += 2
             platform_hit_list = pygame.sprite.spritecollide(
@@ -175,6 +174,9 @@ for i in range(numPlatforms):
     elif i < 9:
         platforms.append(Platform(((i - 5) * 400) + 100, 300))
 
+#init pygame, needed for joysticks
+pygame.init()
+
 # Setup the clock
 clock = pygame.time.Clock()
 
@@ -182,6 +184,27 @@ clock = pygame.time.Clock()
 pygame.font.init()
 
 font = pygame.font.SysFont(None, 25)
+
+# look for joysticks
+numJoysticks = pygame.joystick.get_count()
+print("Detected num Joysticks: ", numJoysticks)
+useJoysticks = numJoysticks >= numPlayers
+# init all the joysticks we have
+joysticks = []
+for i in range(numJoysticks):
+    j = pygame.joystick.Joystick(i)
+    j.init()
+    joysticks.append(j)
+
+# Joystick constants
+JOY_BTN_NORTH = 3     
+JOY_BTN_SOUTH = 6    
+JOY_BTN_EAST = 5     
+JOY_BTN_WEST = 2    
+JOY_BTN_CENTER = 4
+JOY_BTN_COIN = 0
+JOY_BTN_PLAYER = 1
+
 
 running = True
 while running:
@@ -200,6 +223,9 @@ while running:
             if event.key == pygame.K_r:
                 for player in players:
                     player.isAlive = True
+    if numJoysticks > 0: 
+        if joysticks[0].get_button(JOY_BTN_COIN) and joysticks[0].get_button(JOY_BTN_PLAYER):
+            running = False
 
     # Get all the keys currently pressed
     pressedKeys = pygame.key.get_pressed()
@@ -210,11 +236,16 @@ while running:
     #deal with bullets, i know player movement should be here (tbf)
     for playerNum, player in enumerate(players):
         keys = []
+        joys = []
+
         if player.isAlive:
             if playerNum == 0:
                 keys = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_SPACE]
             else:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
+            if useJoysticks:
+                j = joysticks[playerNum]
+                joys = [j.get_axis(0), j.get_button(JOY_BTN_WEST), j.get_button(JOY_BTN_CENTER)]
 
             #make the image the right way, this is all our animation rn
             if player.dir == "right" and player.xVel != 0:
@@ -249,7 +280,7 @@ while running:
             pygame.sprite.groupcollide(bullets, bullets, True, True, collided=collision_check)
 
             #update players
-            player.update(pressedKeys, keys)
+            player.update(pressedKeys, keys, joys)
 
             #use this block to write kills above the players
             text_surf = font.render(str(player.kills), True, (255,255,255))
