@@ -234,9 +234,12 @@ while running:
             if event.key == pygame.K_r:
                 for player in players:
                     player.isAlive = True
-    if numJoysticks > 0: 
+    if useJoysticks: 
         if joysticks[0].get_button(JOY_BTN_COIN) and joysticks[0].get_button(JOY_BTN_PLAYER):
             running = False
+        if joysticks[0]:
+            for player in players:
+                    player.isAlive = True
 
     # Get all the keys currently pressed
     pressedKeys = pygame.key.get_pressed()
@@ -256,7 +259,7 @@ while running:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
             if useJoysticks:
                 j = joysticks[playerNum]
-                joys = [j.get_axis(0), j.get_button(JOY_BTN_WEST), j.get_button(JOY_BTN_CENTER)]
+                joys = [j.get_axis(0), j.get_button(JOY_BTN_SOUTH), j.get_button(JOY_BTN_CENTER)]
 
             #make the image the right way, this is all our animation rn
             if player.dir == "right" and player.xVel != 0:
@@ -266,15 +269,16 @@ while running:
             else:
                 player.surf = pygame.image.load("images/stick_man" + str(playerNum+1) + ".png")
 
-            if pressedKeys[keys[3]] and player.shotCounter > 20:
-                if player.dir == "left":
-                    bullets.add(
-                        Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
-                else:
-                    bullets.add(
-                        Bullet((player.rect.right, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
+            if player.shotCounter > 20:
+                if pressedKeys[keys[3]] or joys[2]:
+                    if player.dir == "left":
+                        bullets.add(
+                            Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
+                    else:
+                        bullets.add(
+                            Bullet((player.rect.right, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
 
-                player.shotCounter = 0
+                    player.shotCounter = 0
 
             player.shotCounter += 1
 
