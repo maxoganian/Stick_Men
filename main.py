@@ -38,7 +38,8 @@ class Player(pygame.sprite.Sprite):
                 leftJoy = True
             elif joys[0] < -.8:
                 rightJoy = True
-            upJoy = joys[1]
+            if joys[1] > .8:
+                upJoy = True
 
         platform_hit_list = pygame.sprite.spritecollide(self, platforms, False)
 
@@ -256,7 +257,7 @@ while running:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
             if useJoysticks:
                 j = joysticks[playerNum]
-                joys = [j.get_axis(0), j.get_button(JOY_BTN_SOUTH), 
+                joys = [j.get_axis(0), j.get_axis(1), 
                         j.get_button(JOY_BTN_CENTER), j.get_button(JOY_BTN_PLAYER)]
 
             #make the image the right way, this is all our animation rn
