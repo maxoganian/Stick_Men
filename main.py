@@ -23,11 +23,22 @@ class Player(pygame.sprite.Sprite):
         self.kills = 0
 
     # Move the sprite based on user keypresses
-    def update(self, pressedKeys, keys):
+    def update(self, pressedKeys, keys, joys):
 
         leftKey = keys[0]
         rightKey = keys[1]
         upKey = keys[2]
+
+        leftJoy = False
+        rightJoy = False
+        upJoy = False
+
+        if useJoysticks:   
+            if joys[0] > .8:
+                leftJoy = True
+            elif joys[0] < -.8:
+                rightJoy = True
+            upJoy = joys[1]
 
         platform_hit_list = pygame.sprite.spritecollide(self, platforms, False)
 
