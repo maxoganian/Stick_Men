@@ -270,7 +270,7 @@ while running:
                 player.surf = pygame.image.load("images/stick_man" + str(playerNum+1) + ".png")
 
             if player.shotCounter > 20:
-                if pressedKeys[keys[3]] or joys[2]:
+                if pressedKeys[keys[3]]:
                     if player.dir == "left":
                         bullets.add(
                             Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
@@ -279,7 +279,9 @@ while running:
                             Bullet((player.rect.right, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
 
                     player.shotCounter = 0
-
+                if useJoysticks:
+                    if joys[2]:
+                        bullets.add(Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
             player.shotCounter += 1
 
             #deal with bullet collisions
