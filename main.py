@@ -281,8 +281,6 @@ while running:
                 if joys[2] and player.shotCounter > 20:
                     bullets.add(Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
                     player.shotCounter = 0
-                if joys[3]:
-                    player.isAlive = True
             player.shotCounter += 1
 
             #deal with bullet collisions
@@ -306,7 +304,11 @@ while running:
             
             #write the kills to the screen
             screen.blit(text_surf, text_rect)
-
+        #respawn player
+        if useJoysticks:
+            if joys[3]:
+                player.isAlive = True
+                
         #use this to print kills at top of screen
         # text = str(player.kills)
         # if playerNum == 0:
