@@ -5,7 +5,7 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self, xStart, yStart):
         super(Player, self).__init__()
-        self.surf = pygame.image.load("images/stick_man1.png")
+        self.surf = pygame.image.load("images/stick_man.png")
         self.rect = self.surf.get_rect(center=(xStart, yStart))
 
         self.yVel = 0
@@ -21,6 +21,7 @@ class Player(pygame.sprite.Sprite):
 
         self.shotCounter = 0
         self.kills = 0
+
 
     # Move the sprite based on user keypresses
     def update(self, pressedKeys, keys, joys):
@@ -83,6 +84,14 @@ class Player(pygame.sprite.Sprite):
         elif self.xVel > 0:
             self.dir = "right"
 
+        #make the image the right way, this is all our animation rn
+        if player.dir == "right" and player.xVel != 0:
+            player.surf = pygame.image.load("images/stick_man_right.png")
+        elif player.dir == "left" and player.xVel != 0:
+            player.surf = pygame.image.load("images/stick_man_left.png")
+        else:
+            player.surf = pygame.image.load("images/stick_man.png")
+
         #move up/down
         self.rect.move_ip(0, self.yVel)
 
@@ -114,6 +123,7 @@ class Player(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.rect.top = HEIGHT - 2
     
+
     def calc_grav(self):
         """ Calculate effect of gravity. """
         if self.yVel == 0:
@@ -122,14 +132,23 @@ class Player(pygame.sprite.Sprite):
             self.yVel += self.gravPower
 
 
+class Hat(pygame.sprite.Sprite):
+    def __init__(self, player, playerNum):
+        super(Player, self).__init__()
+        self.hat_surf = pygame.image.load("images/hat" + str(playerNum+1) + ".png")
+        self.hat_rect = self.hat_surf.get_rect(center=(player.rect.x + player.rect.width/2, ))
+        
+    def update(self):
+        self.hat_rect.x = self.rect.x
+        self.hat_rect.y = self.rect.y
+  
 bullets = pygame.sprite.Group()
-
-
+ 
 class Bullet(pygame.sprite.Sprite):
 
     def __init__(self, center, dir, playerNumber):
         super(Bullet, self).__init__()
-        self.surf = pygame.image.load("images/bullet" + str(playerNum+1) + ".png")
+        self.surf = pygame.image.load("images/hat" + str(playerNum+1) + ".png")
         self.rect = self.surf.get_rect(center=center)
         self.shotCounter = 0
         self.dir = dir
@@ -171,11 +190,13 @@ HEIGHT = 600
 # The size is determined by the constant WIDTH and HEIGHT
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-#create players
+#create and hats
 players = []
+hats = []
 
 for i in range(numPlayers):
     players.append(Player((i * 400) + 100, 400))
+    hats.append(Hat(i))
 
 platforms = []
 for i in range(numPlatforms):
@@ -263,13 +284,6 @@ while running:
             else:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
 
-            #make the image the right way, this is all our animation rn
-            if player.dir == "right" and player.xVel != 0:
-                player.surf = pygame.image.load("images/stick_man_right" + str(playerNum+1) + ".png")
-            elif player.dir == "left" and player.xVel != 0:
-                player.surf = pygame.image.load("images/stick_man_left" + str(playerNum+1) + ".png")
-            else:
-                player.surf = pygame.image.load("images/stick_man" + str(playerNum+1) + ".png")
 
             if pressedKeys[keys[3]] and player.shotCounter > 20:
                 if player.dir == "left":
@@ -330,6 +344,10 @@ while running:
     for player in players:
         if player.isAlive:
             screen.blit(player.surf, player.rect)
+    for hat in hats:
+        hat.update()
+        if hat.isAlive:
+            screen.blit(hat.hat_surf, hat.rect)
 
     for bullet in bullets:
         bullet.shoot()
