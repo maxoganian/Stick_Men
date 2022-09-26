@@ -16,6 +16,13 @@ class Player(pygame.sprite.Sprite):
         self.gravPower = 2
         self.isJumping = False
 
+        #self.running_imgs = []
+        # for i in range(4):
+        #     self.running_imgs.append(pygame.image.load("images/stick_man_running"+str(i)+".png"))
+        #self.runningCounter = 0
+        
+        self.running_img = pygame.image.load("images/stick_man_running4.png")
+
         self.speed = 10
         self.dir = "right"
 
@@ -86,12 +93,13 @@ class Player(pygame.sprite.Sprite):
             self.dir = "right"
 
         #make the image the right way, this is all our animation rn
-        if player.dir == "right" and player.xVel != 0:
-            player.surf = pygame.image.load("images/stick_man_right.png")
-        elif player.dir == "left" and player.xVel != 0:
-            player.surf = pygame.image.load("images/stick_man_left.png")
+        if self.xVel != 0:
+            if self.dir == "right":
+                self.surf = pygame.transform.flip(self.running_img, True, False)
+            elif self.dir == "left":
+                self.surf = self.running_img
         else:
-            player.surf = pygame.image.load("images/stick_man.png")
+            self.surf = pygame.image.load("images/stick_man.png")
 
         #move up/down
         self.rect.move_ip(0, self.yVel)
@@ -179,6 +187,7 @@ def collision_check(sprite1, sprite2):
         return sprite1.rect.colliderect(sprite2.rect)
     else:  # Both sprites are the same object, so return False.
         return False
+
 
 
 numPlatforms = 8
