@@ -20,6 +20,7 @@ class Player(pygame.sprite.Sprite):
         self.dir = "right"
 
         self.shotCounter = 0
+        self.shotTime = 20
         self.kills = 0
 
 
@@ -123,6 +124,11 @@ class Player(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.rect.top = HEIGHT - 2
     
+        shot_rect = pygame.Rect(self.rect.x, self.rect.y - 5, self.shotTime - self.shotCounter, 2)
+        shot_rect.center = (self.rect.x + self.rect.width/2, self.rect.y - 5)
+
+        pygame.draw.rect(screen, (255,255,255), shot_rect)
+
 
     def calc_grav(self):
         """ Calculate effect of gravity. """
@@ -134,13 +140,15 @@ class Player(pygame.sprite.Sprite):
 
 class Hat(pygame.sprite.Sprite):
     def __init__(self, player, playerNum):
-        super(Player, self).__init__()
-        self.hat_surf = pygame.image.load("images/hat" + str(playerNum+1) + ".png")
-        self.hat_rect = self.hat_surf.get_rect(center=(player.rect.x + player.rect.width/2, ))
-        
-    def update(self):
-        self.hat_rect.x = self.rect.x
-        self.hat_rect.y = self.rect.y
+        super(Hat, self).__init__()
+        self.surf = pygame.image.load("images/hat" + str(playerNum+1) + ".png")
+        self.rect = self.surf.get_rect(center=(player.rect.x + player.rect.width/2, player.rect.y-20))
+        self.isAlive = player.isAlive
+
+    def update(self, player):
+        self.rect.x = player.rect.x
+        self.rect.y = player.rect.y
+        self.isAlive = player.isAlive
   
 bullets = pygame.sprite.Group()
  
@@ -196,7 +204,9 @@ hats = []
 
 for i in range(numPlayers):
     players.append(Player((i * 400) + 100, 400))
-    hats.append(Hat(i))
+    
+for i, player in enumerate(players):
+    hats.append(Hat(player, i))
 
 platforms = []
 for i in range(numPlatforms):
@@ -285,7 +295,7 @@ while running:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
 
 
-            if pressedKeys[keys[3]] and player.shotCounter > 20:
+            if pressedKeys[keys[3]] and player.shotCounter > player.shotTime:
                 if player.dir == "left":
                     bullets.add(
                         Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
@@ -295,7 +305,7 @@ while running:
 
                 player.shotCounter = 0
             if useJoysticks:
-                if joys[2] and player.shotCounter > 20:
+                if joys[2] and player.shotCounter > player.shotTime:
                     bullets.add(Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
                     player.shotCounter = 0
             player.shotCounter += 1
@@ -344,10 +354,11 @@ while running:
     for player in players:
         if player.isAlive:
             screen.blit(player.surf, player.rect)
-    for hat in hats:
-        hat.update()
+    
+    for i, hat in enumerate(hats):
+        hat.update(players[i])
         if hat.isAlive:
-            screen.blit(hat.hat_surf, hat.rect)
+            screen.blit(hat.surf, hat.rect)
 
     for bullet in bullets:
         bullet.shoot()
