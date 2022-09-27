@@ -202,14 +202,16 @@ class Platform(pygame.sprite.Sprite):
     def __init__(self, xPos, yPos, width = 200, height = 15, image = "platform.png"):
         super(Platform, self).__init__()
         self.surf = pygame.image.load("images/" + image)
-        self.rect = self.surf.get_rect(center=(xPos, yPos))
+        self.rect = self.surf.get_rect()
         self.rect.width = width
         self.rect.height = height
+        self.rect.x = xPos 
+        self.rect.y = yPos
         self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height))
 
 #game window width and height
 WIDTH = 1000
-HEIGHT = 800
+HEIGHT = 600
 
 # Create the screen object
 # The size is determined by the constant WIDTH and HEIGHT
@@ -228,11 +230,11 @@ for i, player in enumerate(players):
 platforms = []
 for i in range(numPlatforms):
     if i < 3:
-        platforms.append(Platform((i * 400) + 100, 500, 300, 15, "hat1.png"))
+        platforms.append(Platform((i * 400), 500, 300, 15, "hat1.png"))
     elif i < 5:
-        platforms.append(Platform(((i - 3) * 400) + 300, 400, 50, 5))
+        platforms.append(Platform(((i - 3) * 400) + 200, 400, 50, 5))
     elif i < 9:
-        platforms.append(Platform(((i - 5) * 400) + 100, 300))
+        platforms.append(Platform(((i - 5) * 400), 300))
 
 #init pygame, needed for joysticks
 pygame.init()
