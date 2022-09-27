@@ -1,4 +1,7 @@
 import pygame
+import math
+import configparser
+
 
 numPlayers = 2
 class Player(pygame.sprite.Sprite):
@@ -16,12 +19,12 @@ class Player(pygame.sprite.Sprite):
         self.gravPower = 2
         self.isJumping = False
 
-        #self.running_imgs = []
-        # for i in range(4):
-        #     self.running_imgs.append(pygame.image.load("images/stick_man_running"+str(i)+".png"))
-        #self.runningCounter = 0
+        self.running_imgs = []
+        for i in range(2):
+            self.running_imgs.append(pygame.image.load("images/stick_man_running"+str(i)+".png"))
+        self.runningCounter = 0
         
-        self.running_img = pygame.image.load("images/stick_man_running4.png")
+        #self.running_imgs = pygame.image.load("images/stick_man_running4.png")
 
         self.speed = 10
         self.dir = "right"
@@ -95,9 +98,12 @@ class Player(pygame.sprite.Sprite):
         #make the image the right way, this is all our animation rn
         if self.xVel != 0:
             if self.dir == "right":
-                self.surf = pygame.transform.flip(self.running_img, True, False)
+                self.surf = pygame.transform.flip(self.running_imgs[self.runningCounter], True, False)
             elif self.dir == "left":
-                self.surf = self.running_img
+                self.surf = self.running_imgs[self.runningCounter]
+            self.runningCounter+=1
+            if self.runningCounter >= len(self.running_imgs):
+                self.runningCounter = 0
         else:
             self.surf = pygame.image.load("images/stick_man.png")
 
@@ -193,15 +199,17 @@ def collision_check(sprite1, sprite2):
 numPlatforms = 8
 class Platform(pygame.sprite.Sprite):
 
-    def __init__(self, xPos, yPos):
+    def __init__(self, xPos, yPos, width = 200, height = 15, image = "platform.png"):
         super(Platform, self).__init__()
-        self.surf = pygame.image.load("images/platform.png")
+        self.surf = pygame.image.load("images/" + image)
         self.rect = self.surf.get_rect(center=(xPos, yPos))
-
+        self.rect.width = width
+        self.rect.height = height
+        self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height))
 
 #game window width and height
 WIDTH = 1000
-HEIGHT = 600
+HEIGHT = 800
 
 # Create the screen object
 # The size is determined by the constant WIDTH and HEIGHT
@@ -220,9 +228,9 @@ for i, player in enumerate(players):
 platforms = []
 for i in range(numPlatforms):
     if i < 3:
-        platforms.append(Platform((i * 400) + 100, 500))
+        platforms.append(Platform((i * 400) + 100, 500, 300, 15, "hat1.png"))
     elif i < 5:
-        platforms.append(Platform(((i - 3) * 400) + 300, 400))
+        platforms.append(Platform(((i - 3) * 400) + 300, 400, 50, 5))
     elif i < 9:
         platforms.append(Platform(((i - 5) * 400) + 100, 300))
 
