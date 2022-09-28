@@ -2,6 +2,11 @@ import pygame
 import math
 import configparser
 
+# load config info
+config = configparser.ConfigParser()
+config.read("levels.conf")
+
+level = 'LEVEL_1'
 
 numPlayers = 2
 class Player(pygame.sprite.Sprite):
@@ -196,17 +201,18 @@ def collision_check(sprite1, sprite2):
 
 
 
-numPlatforms = 8
+#numPlatforms = 8
 class Platform(pygame.sprite.Sprite):
-
-    def __init__(self, xPos, yPos, width = 200, height = 15, image = "platform.png"):
+    def __init__(self, startX, startY, width, height, image = None):
         super(Platform, self).__init__()
-        self.surf = pygame.image.load("images/" + image)
+        if image is None:
+            image = "platform"
+        self.surf = pygame.image.load("images/" + image + ".png")
         self.rect = self.surf.get_rect()
         self.rect.width = width
         self.rect.height = height
-        self.rect.x = xPos 
-        self.rect.y = yPos
+        self.rect.center = (startX, startY)
+
         self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height))
 
 #game window width and height
@@ -228,13 +234,18 @@ for i, player in enumerate(players):
     hats.append(Hat(player, i))
 
 platforms = []
-for i in range(numPlatforms):
-    if i < 3:
-        platforms.append(Platform((i * 400), 500, 300, 15, "hat1.png"))
-    elif i < 5:
-        platforms.append(Platform(((i - 3) * 400) + 200, 400, 50, 5))
-    elif i < 9:
-        platforms.append(Platform(((i - 5) * 400), 300))
+print(config[level])
+for i in range(int(config[level]['numPlatforms'])):
+   
+   start, rect, image = eval(config[level]['p'+str(i)])
+   startX, startY = start
+   width, height = rect
+
+   print(start)
+   print(rect)
+   print(image, image is None)
+
+   platforms.append(Platform(startX*10, startY*10, width*10, height*10, image))
 
 #init pygame, needed for joysticks
 pygame.init()
@@ -313,14 +324,11 @@ while running:
             else:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
 
-
             if pressedKeys[keys[3]] and player.shotCounter > player.shotTime:
                 if player.dir == "left":
-                    bullets.add(
-                        Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
+                    bullets.add(Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
                 else:
-                    bullets.add(
-                        Bullet((player.rect.right, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
+                    bullets.add(Bullet((player.rect.right, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
 
                 player.shotCounter = 0
             if useJoysticks:
