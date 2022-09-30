@@ -242,8 +242,8 @@ for i, player in enumerate(players):
 
 platforms = pygame.sprite.Group()
 def makePlatforms():
-    #levelNum = random.randint(0,1)
-    levelNum = 1
+    levelNum = random.randint(0,(int(config['DEFAULTS']['num_levels'])-1))
+    #levelNum = 1
     level = 'LEVEL_' + str(levelNum)
 
     print("numPlatforms: " + config[level]['numPlatforms'])
