@@ -1,12 +1,11 @@
 import pygame
 import math
 import configparser
+import random
 
 # load config info
 config = configparser.ConfigParser()
 config.read("levels.conf")
-
-level = 'LEVEL_1'
 
 numPlayers = 2
 class Player(pygame.sprite.Sprite):
@@ -20,19 +19,21 @@ class Player(pygame.sprite.Sprite):
         self.xVel = 0
         self.isAlive = True
 
-        self.jumpHeight = 20
-        self.gravPower = 2
+        self.jumpHeight = int(config['DEFAULTS']['player_jump_velocity'])
+        self.gravPower = int(config['DEFAULTS']['gravity_acceleration'])
         self.isJumping = False
+
+
+        self.speed = int(config['DEFAULTS']['player_speed'])
+        self.dir = "right"
 
         self.running_imgs = []
         for i in range(2):
             self.running_imgs.append(pygame.image.load("images/stick_man_running"+str(i)+".png"))
         self.runningCounter = 0
         
-        #self.running_imgs = pygame.image.load("images/stick_man_running4.png")
+        #self.running_imgs[0] = pygame.image.load("images/stick_man_running4.png")
 
-        self.speed = 10
-        self.dir = "right"
 
         self.shotCounter = 0
         self.shotTime = 20
@@ -111,6 +112,10 @@ class Player(pygame.sprite.Sprite):
                 self.runningCounter = 0
         else:
             self.surf = pygame.image.load("images/stick_man.png")
+
+        #keep the falling speed in check so we dont break the game
+        if self.yVel > int(config['DEFAULTS']['maxFallSpeed']):
+            self.yVel = int(config['DEFAULTS']['maxFallSpeed'])
 
         #move up/down
         self.rect.move_ip(0, self.yVel)
@@ -227,25 +232,40 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 players = []
 hats = []
 
-for i in range(numPlayers):
-    players.append(Player((i * 400) + 100, 400))
+#for i in range(numPlayers):
+players.append(Player(300, 50))
+players.append(Player(700, 50))
+
     
 for i, player in enumerate(players):
     hats.append(Hat(player, i))
 
-platforms = []
-print(config[level])
-for i in range(int(config[level]['numPlatforms'])):
-   
-   start, rect, image = eval(config[level]['p'+str(i)])
-   startX, startY = start
-   width, height = rect
+platforms = pygame.sprite.Group()
+def makePlatforms():
+    #levelNum = random.randint(0,1)
+    levelNum = 1
+    level = 'LEVEL_' + str(levelNum)
 
-   print(start)
-   print(rect)
-   print(image, image is None)
+    print("numPlatforms: " + config[level]['numPlatforms'])
+    
+    print(level)
+    for platform in platforms:
+        platform.kill()
 
-   platforms.append(Platform(startX*10, startY*10, width*10, height*10, image))
+    for i in range(int(config[level]['numPlatforms'])):
+       
+       #spilt our output from the cofig into usable pieces
+       start, rect, image = eval(config[level]['p'+str(i)])
+       startX, startY = start
+       width, height = rect
+
+       platforms.add(Platform(startX*10, startY*10, width*10, height*10, image))
+    print("platforms: " + str(platforms))
+
+print("platforms: " + str(platforms))
+makePlatforms()
+
+print("platformsFINAL: " + str(platforms))
 
 #init pygame, needed for joysticks
 pygame.init()
@@ -296,6 +316,9 @@ while running:
             if event.key == pygame.K_r:
                 for player in players:
                     player.isAlive = True
+            if event.key == pygame.K_t:
+                makePlatforms()
+
     if useJoysticks: 
         if joysticks[0].get_button(JOY_BTN_COIN) and joysticks[0].get_button(JOY_BTN_PLAYER):
             running = False
