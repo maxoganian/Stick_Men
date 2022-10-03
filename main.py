@@ -210,68 +210,67 @@ def collision_check(sprite1, sprite2):
 class Platform(pygame.sprite.Sprite):
     def __init__(self, platform_input, type):
         super(Platform, self).__init__()
-
+        
         #spilt our output from the cofig into usable pieces
         if type == "norm":
             start, rect, image = platform_input
         elif type == "moving":
-            start, rect, image, end = platform_input
+            start, rect, image, end, speed = platform_input
             endX, endY = end 
-
-
+        
         if image is None:
             image = "platform"
 
         self.surf = pygame.image.load("images/" + image + ".png")
         self.rect = self.surf.get_rect()
         self.type = type
-            
-        # if type == "moving":
-        #     self.endX = endX*10
-        #     self.endY = endY*10
-            
-        #     deltaX = (self.rect.x - self.endX)
-        #     deltaY = (self.rect.y - self.endY)
-                          
-        #     angle = math.atan(deltaY/deltaX)
-
-        #     self.xVel = 5*math.cos(angle)
-        #     self.yVel = 5*math.sin(angle)
-            
+      
         startX, startY = start
         width, height = rect
 
         self.startX = startX*10
         self.startY = startY*10
-        self.isGoingToEnd = True
-
+        # self.isGoingToEnd = True
+        
         self.rect.width = width*10
         self.rect.height = height*10
         self.rect.center = (startX*10, startY*10)
 
-        
-
         self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height))
-    
+        
+        if type == "moving":   
+            self.endX = endX*10
+            self.endY = endY*10
+
+            #do math for moving plats 
+            deltaX = (self.endX - self.startX)
+            deltaY = (self.endY - self.startY)
+            
+            radians = math.atan2(deltaY, deltaX)
+
+            #decide if we use the x or y delta to check for arrival at distance
+            #use the larger of the two
+            useXforDist = abs(deltaX) > abs(deltaY)
+            #print("stepInX: ", stepInX)
+            travelDist = deltaX if useXforDist else deltaY
+
+            self.stepsTillEnd = int(travelDist/speed)
+            self.origStepsTillEnd = self.stepsTillEnd
+
+            self.yVel = speed * math.sin(radians)
+            self.xVel = speed * math.cos(radians)
+      
     def update(self):
         
         if(self.type == "moving"):
-            # if self.rect.x > self.endX and self.rect.y > self.endY:
-            #     print(">")
-            #     self.rect.center = (self.endX, self.endY)
-            #     self.isGoingToEnd = False
-            # if self.rect.x + self.rect.w/2 < self.startX and self.rect.y + self.rect.h/2 < self.startY:
-            #     print("<")
-            #     self.rect.center = (self.startX, self.startY)
-            #     self.isGoingToEnd = True
+            if self.stepsTillEnd > 0:
+                self.rect.move_ip(self.xVel, self.yVel)
+            else:
+                self.rect.move_ip(-self.xVel, -self.yVel)
 
-            # if self.isGoingToEnd:
-            #     self.rect.move_ip(self.xVel, self.yVel)
-            # else:
-            #     self.rect.move_ip(-self.xVel, -self.yVel)
-
-
-
+            if self.stepsTillEnd < (-self.origStepsTillEnd):
+                self.stepsTillEnd = self.origStepsTillEnd
+            self.stepsTillEnd-=1
 #game window width and height
 WIDTH = 1000
 HEIGHT = 600
