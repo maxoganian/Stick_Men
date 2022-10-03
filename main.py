@@ -71,10 +71,10 @@ class Player(pygame.sprite.Sprite):
 
         if pressedKeys[upKey] or upJoy:
             # move down a bit and see if there is a platform below us.
-            self.rect.y += 2
+            self.rect.y += 6
             platform_hit_list = pygame.sprite.spritecollide(
                 self, platforms, False)
-            self.rect.y -= 2
+            self.rect.y -= 6
 
             # If it is ok to jump, set our speed upwards
             if platform_hit_list != []:
@@ -178,14 +178,14 @@ bullets = pygame.sprite.Group()
  
 class Bullet(pygame.sprite.Sprite):
 
-    def __init__(self, center, dir, playerNumber):
+    def __init__(self, center, dir, playerNum):
         super(Bullet, self).__init__()
         self.surf = pygame.image.load("images/hat" + str(playerNum+1) + ".png")
         self.rect = self.surf.get_rect(center=center)
         self.shotCounter = 0
         self.dir = dir
         self.speed = 20
-        self.playerId = playerNumber
+        self.playerId = playerNum
 
     def shoot(self):
         if self.dir == "left":
@@ -208,17 +208,69 @@ def collision_check(sprite1, sprite2):
 
 #numPlatforms = 8
 class Platform(pygame.sprite.Sprite):
-    def __init__(self, startX, startY, width, height, image = None):
+    def __init__(self, platform_input, type):
         super(Platform, self).__init__()
+
+        #spilt our output from the cofig into usable pieces
+        if type == "norm":
+            start, rect, image = platform_input
+        elif type == "moving":
+            start, rect, image, end = platform_input
+            endX, endY = end 
+
+
         if image is None:
             image = "platform"
+
         self.surf = pygame.image.load("images/" + image + ".png")
         self.rect = self.surf.get_rect()
-        self.rect.width = width
-        self.rect.height = height
-        self.rect.center = (startX, startY)
+        self.type = type
+            
+        # if type == "moving":
+        #     self.endX = endX*10
+        #     self.endY = endY*10
+            
+        #     deltaX = (self.rect.x - self.endX)
+        #     deltaY = (self.rect.y - self.endY)
+                          
+        #     angle = math.atan(deltaY/deltaX)
+
+        #     self.xVel = 5*math.cos(angle)
+        #     self.yVel = 5*math.sin(angle)
+            
+        startX, startY = start
+        width, height = rect
+
+        self.startX = startX*10
+        self.startY = startY*10
+        self.isGoingToEnd = True
+
+        self.rect.width = width*10
+        self.rect.height = height*10
+        self.rect.center = (startX*10, startY*10)
+
+        
 
         self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height))
+    
+    def update(self):
+        
+        if(self.type == "moving"):
+            # if self.rect.x > self.endX and self.rect.y > self.endY:
+            #     print(">")
+            #     self.rect.center = (self.endX, self.endY)
+            #     self.isGoingToEnd = False
+            # if self.rect.x + self.rect.w/2 < self.startX and self.rect.y + self.rect.h/2 < self.startY:
+            #     print("<")
+            #     self.rect.center = (self.startX, self.startY)
+            #     self.isGoingToEnd = True
+
+            # if self.isGoingToEnd:
+            #     self.rect.move_ip(self.xVel, self.yVel)
+            # else:
+            #     self.rect.move_ip(-self.xVel, -self.yVel)
+
+
 
 #game window width and height
 WIDTH = 1000
@@ -242,24 +294,24 @@ for i, player in enumerate(players):
 
 platforms = pygame.sprite.Group()
 def makePlatforms():
-    levelNum = random.randint(0,(int(config['DEFAULTS']['num_levels'])-1))
-    #levelNum = 1
+    #levelNum = random.randint(0,(int(config['DEFAULTS']['num_levels'])-1))
+    levelNum = 0
     level = 'LEVEL_' + str(levelNum)
-
-    print("numPlatforms: " + config[level]['numPlatforms'])
     
     print(level)
     for platform in platforms:
         platform.kill()
+    
+    #first add statonary platforms then moving ones
+    for i in range(int(config[level]['num_normal'])):
+       norm_platform = eval(config[level + '.norm_platforms']['p'+str(i)])
+       platforms.add(Platform(norm_platform, "norm"))
+    
+    #create moving platforms
+    for i in range(int(config[level]['num_moving'])):
+        platform = eval(config[level + '.moving_platforms']['p'+str(i)])
+        platforms.add(Platform(platform, "moving"))
 
-    for i in range(int(config[level]['numPlatforms'])):
-       
-       #spilt our output from the cofig into usable pieces
-       start, rect, image = eval(config[level]['p'+str(i)])
-       startX, startY = start
-       width, height = rect
-
-       platforms.add(Platform(startX*10, startY*10, width*10, height*10, image))
     print("platforms: " + str(platforms))
 
 print("platforms: " + str(platforms))
@@ -267,68 +319,30 @@ makePlatforms()
 
 print("platformsFINAL: " + str(platforms))
 
-#init pygame, needed for joysticks
-pygame.init()
+def drawSprites():
+    # Draw all sprites
+    for bullet in bullets:
+        bullet.shoot()
+        #keep bullets on screen and out of platforms
+        if pygame.sprite.spritecollide(bullet, platforms, False) or bullet.shotCounter > 40:
+            bullet.kill()
+        bullet.shotCounter+=1
+        screen.blit(bullet.surf, bullet.rect)
 
-# Setup the clock
-clock = pygame.time.Clock()
+    for platform in platforms:
+        platform.update()
+        screen.blit(platform.surf, platform.rect)
 
-#set up the font
-pygame.font.init()
+    for player in players:
+        if player.isAlive:
+            screen.blit(player.surf, player.rect)
+    
+    for i, hat in enumerate(hats):
+        hat.update(players[i])
+        if hat.isAlive:
+            screen.blit(hat.surf, hat.rect)
 
-font = pygame.font.SysFont(None, 25)
-
-# look for joysticks
-numJoysticks = pygame.joystick.get_count()
-print("Detected num Joysticks: ", numJoysticks)
-useJoysticks = numJoysticks >= numPlayers
-# init all the joysticks we have
-joysticks = []
-for i in range(numJoysticks):
-    j = pygame.joystick.Joystick(i)
-    j.init()
-    joysticks.append(j)
-
-# Joystick constants
-JOY_BTN_NORTH = 3     
-JOY_BTN_SOUTH = 6    
-JOY_BTN_EAST = 5     
-JOY_BTN_WEST = 2    
-JOY_BTN_CENTER = 4
-JOY_BTN_COIN = 0
-JOY_BTN_PLAYER = 1
-
-
-running = True
-while running:
-
-    # for loop through the event queue
-    for event in pygame.event.get():
-        # Check for QUIT event. If QUIT, then set running to false.
-        if event.type == pygame.QUIT:
-            running = False
-        # Check for KEYDOWN event
-        if event.type == pygame.KEYDOWN:
-            # If the Esc key is pressed, then exit the main loop
-            if event.key == pygame.K_ESCAPE:
-                running = False
-            #Restart if r key is pressed
-            if event.key == pygame.K_r:
-                for player in players:
-                    player.isAlive = True
-            if event.key == pygame.K_t:
-                makePlatforms()
-
-    if useJoysticks: 
-        if joysticks[0].get_button(JOY_BTN_COIN) and joysticks[0].get_button(JOY_BTN_PLAYER):
-            running = False
-
-    # Get all the keys currently pressed
-    pressedKeys = pygame.key.get_pressed()
-
-    # Fill the screen with black
-    screen.fill((0, 0, 0))
-
+def updateSprites():
     #deal with bullets, i know player movement should be here (tbf)
     for playerNum, player in enumerate(players):
         keys = []
@@ -348,11 +362,7 @@ while running:
                 keys = [pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_g]
 
             if pressedKeys[keys[3]] and player.shotCounter > player.shotTime:
-                if player.dir == "left":
-                    bullets.add(Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
-                else:
-                    bullets.add(Bullet((player.rect.right, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
-
+                bullets.add(Bullet((player.rect.x, player.rect.y + (player.rect.height / 2)), player.dir, playerNum))
                 player.shotCounter = 0
             if useJoysticks:
                 if joys[2] and player.shotCounter > player.shotTime:
@@ -395,29 +405,81 @@ while running:
         # text_rect = text_surf.get_rect(center=(((WIDTH/2)+((playerNum+1)*20)), 20))
         ##write the kills to the screen
         #screen.blit(text_surf, text_rect)
-        
 
-    # Draw all sprites
-    for platform in platforms:
-        screen.blit(platform.surf, platform.rect)
+#init pygame, needed for joysticks
+pygame.init()
 
-    for player in players:
-        if player.isAlive:
-            screen.blit(player.surf, player.rect)
+# Setup the clock
+clock = pygame.time.Clock()
+
+#set up the font
+pygame.font.init()
+
+font = pygame.font.SysFont(None, 25)
+
+# look for joysticks
+numJoysticks = pygame.joystick.get_count()
+print("Detected num Joysticks: ", numJoysticks)
+useJoysticks = numJoysticks >= numPlayers
+# init all the joysticks we have
+joysticks = []
+for i in range(numJoysticks):
+    j = pygame.joystick.Joystick(i)
+    j.init()
+    joysticks.append(j)
+
+# Joystick constants
+JOY_BTN_NORTH = 3
+JOY_BTN_SOUTH = 6    
+JOY_BTN_EAST = 5     
+JOY_BTN_WEST = 2    
+JOY_BTN_CENTER = 4
+JOY_BTN_COIN = 0
+JOY_BTN_PLAYER = 1
+
+state = "start"
+
+running = True
+while running:
+
+    # for loop through the event queue
+    for event in pygame.event.get():
+        # Check for QUIT event. If QUIT, then set running to false.
+        if event.type == pygame.QUIT:
+            running = False
+        # Check for KEYDOWN event
+        if event.type == pygame.KEYDOWN:
+            # If the Esc key is pressed, then exit the main loop
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            #Restart if r key is pressed
+            if event.key == pygame.K_r:
+                for player in players:
+                    player.isAlive = True
+            if event.key == pygame.K_t:
+                makePlatforms()
+            if event.key == pygame.K_c:
+                state = "playing"
+            if event.key == pygame.K_s:
+                state = "start"
+            
+    if useJoysticks: 
+        if joysticks[0].get_button(JOY_BTN_COIN) and joysticks[0].get_button(JOY_BTN_PLAYER):
+            running = False
+
+    # Get all the keys currently pressed
+    pressedKeys = pygame.key.get_pressed()
+    if state == "start":
+        image = pygame.image.load("images/start_background.png")
+        image_rect = image.get_rect()
+        screen.blit(image, image_rect)
+
+    elif state == "playing":
+        # Fill the screen with black
+        screen.fill((0, 0, 0))
+        updateSprites() 
+        drawSprites()
     
-    for i, hat in enumerate(hats):
-        hat.update(players[i])
-        if hat.isAlive:
-            screen.blit(hat.surf, hat.rect)
-
-    for bullet in bullets:
-        bullet.shoot()
-        #keep bullets on screen and out of platforms
-        if pygame.sprite.spritecollide(bullet, platforms, False) or bullet.shotCounter > 40:
-            bullet.kill()
-        bullet.shotCounter+=1
-        screen.blit(bullet.surf, bullet.rect)
-
     # Update the display
     pygame.display.flip()
 
