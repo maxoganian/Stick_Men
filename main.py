@@ -115,14 +115,18 @@ class Player(pygame.sprite.Sprite):
         platform_hit_list = pygame.sprite.spritecollide(self, platforms, False)
 
         for platform in platform_hit_list:
-            # If we are moving right,
+            # If we are moving right, same problem as up and down if pat moves into player
             # set our right side to the left side of the item we hit
             if self.xVel > 0:
                 self.rect.right = platform.rect.left
+                if platform.type == "moving":
+                   self.rect.right = platform.rect.left-platform.xVel 
+
             elif self.xVel < 0:
                 # Otherwise if we are moving left, do the opposite.
                 self.rect.left = platform.rect.right
-
+                if platform.type == "moving":
+                   self.rect.left = platform.rect.right+platform.xVel 
         #what direction are we moving?
         if self.xVel < 0:
             self.dir = "left"
@@ -484,6 +488,12 @@ while running:
     if useJoysticks: 
         if joysticks[0].get_button(JOY_BTN_COIN) and joysticks[0].get_button(JOY_BTN_PLAYER):
             running = False
+        if joysticks[0].get_button(JOY_BTN_PLAYER):
+            state = "start"
+        if joysticks[0].get_button(JOY_BTN_COIN):
+            state = "running"
+        if joysticks[1].get_button(JOY_BTN_PLAYER):
+            makePlatforms()
 
     # Get all the keys currently pressed
     pressedKeys = pygame.key.get_pressed()
