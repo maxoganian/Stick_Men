@@ -100,7 +100,8 @@ class Player(pygame.sprite.Sprite):
                         #we have no issue
                         self.rect.bottom = platform.rect.top
                     else:
-                        self.rect.move_ip(0,platform.yVel)
+                        #put solution here :(, this bouncing down is best I have rn, will revisit
+                        self.rect.top = platform.rect.bottom + platform.yVel+1
             
             elif self.yVel < 0:
                 self.rect.top = platform.rect.bottom
@@ -307,8 +308,8 @@ for i, player in enumerate(players):
 
 platforms = pygame.sprite.Group()
 def makePlatforms():
-    #levelNum = random.randint(0,(int(config['DEFAULTS']['num_levels'])-1))
-    levelNum = 0
+    levelNum = random.randint(0,(int(config['DEFAULTS']['num_levels'])-1))
+    #levelNum = 0
     level = 'LEVEL_' + str(levelNum)
     
     print(level)
