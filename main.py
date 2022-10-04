@@ -72,14 +72,41 @@ class Player(pygame.sprite.Sprite):
         if pressedKeys[upKey] or upJoy:
             # move down a bit and see if there is a platform below us.
             self.rect.y += 6
-            platform_hit_list = pygame.sprite.spritecollide(
-                self, platforms, False)
+            platform_hit_list = pygame.sprite.spritecollide(self, platforms, False)
             self.rect.y -= 6
 
             # If it is ok to jump, set our speed upwards
             if platform_hit_list != []:
                 self.yVel = -self.jumpHeight
  
+        
+        #move up/down
+        self.rect.move_ip(0, self.yVel)
+
+        # Check and see if we hit anything
+        platform_hit_list = pygame.sprite.spritecollide(self, platforms, False)
+
+        for platform in platform_hit_list:
+            # Reset our position based on the top/bottom of the object.
+            if self.yVel > 0:
+                if platform.type != "moving":
+                    self.rect.bottom = platform.rect.top
+
+                elif platform.type == "moving": #basically deals with the edge case where a platform falls 
+                    #onto a player while the player is jumping; The problem is the player hits and stops, but
+                    #then the platform is moving faster than the player is falling, causeing a sort of coninuous
+                    #collision
+                    if platform.yVel < 0 or self.rect.y < platform.rect.y: #if moving down or the player is above the plat
+                        #we have no issue
+                        self.rect.bottom = platform.rect.top
+                    else:
+                        self.rect.move_ip(0,platform.yVel)
+            
+            elif self.yVel < 0:
+                self.rect.top = platform.rect.bottom
+            #Stop our vertical movement
+            self.yVel = 0
+            
         # Move left/right
         self.rect.move_ip(self.xVel, 0)
 
@@ -116,22 +143,6 @@ class Player(pygame.sprite.Sprite):
         #keep the falling speed in check so we dont break the game
         if self.yVel > int(config['DEFAULTS']['maxFallSpeed']):
             self.yVel = int(config['DEFAULTS']['maxFallSpeed'])
-
-        #move up/down
-        self.rect.move_ip(0, self.yVel)
-
-        # Check and see if we hit anything
-        platform_hit_list = pygame.sprite.spritecollide(self, platforms, False)
-
-        for platform in platform_hit_list:
-            # Reset our position based on the top/bottom of the object.
-            if self.yVel > 0:
-                self.rect.bottom = platform.rect.top
-            elif self.yVel < 0:
-                self.rect.top = platform.rect.bottom
-
-            # Stop our vertical movement
-            self.yVel = 0
 
         # Keep player on the screen
         if self.rect.right < 0:
@@ -217,7 +228,8 @@ class Platform(pygame.sprite.Sprite):
         elif type == "moving":
             start, rect, image, end, speed = platform_input
             endX, endY = end 
-        
+            
+            self.speed = speed
         if image is None:
             image = "platform"
 
@@ -331,7 +343,7 @@ def drawSprites():
         screen.blit(bullet.surf, bullet.rect)
 
     for platform in platforms:
-        platform.update()
+        #platform.update()
         screen.blit(platform.surf, platform.rect)
 
     for player in players:
@@ -344,6 +356,9 @@ def drawSprites():
             screen.blit(hat.surf, hat.rect)
 
 def updateSprites():
+    for platform in platforms:
+        platform.update()
+    
     #deal with bullets, i know player movement should be here (tbf)
     for playerNum, player in enumerate(players):
         keys = []
@@ -382,6 +397,7 @@ def updateSprites():
             #if bullets hit remove them tbh this is copied code probably could do other collison checks
             #with this, platforms?
             pygame.sprite.groupcollide(bullets, bullets, True, True, collided=collision_check)
+
 
             #update players
             player.update(pressedKeys, keys, joys)
