@@ -2,6 +2,7 @@ import pygame
 import math
 import configparser
 import random
+import time
 
 # load config info
 config = configparser.ConfigParser()
@@ -71,9 +72,9 @@ class Player(pygame.sprite.Sprite):
 
         if pressedKeys[upKey] or upJoy:
             # move down a bit and see if there is a platform below us.
-            self.rect.y += 6
+            self.rect.y += 10
             platform_hit_list = pygame.sprite.spritecollide(self, platforms, False)
-            self.rect.y -= 6
+            self.rect.y -= 10
 
             # If it is ok to jump, set our speed upwards
             if platform_hit_list != []:
@@ -352,8 +353,8 @@ def drawSprites():
         screen.blit(platform.surf, platform.rect)
 
     for player in players:
-        if player.isAlive:
-            screen.blit(player.surf, player.rect)
+        #if player.isAlive:
+        screen.blit(player.surf, player.rect)
     
     for i, hat in enumerate(hats):
         hat.update(players[i])
@@ -398,7 +399,7 @@ def updateSprites():
                     player.isAlive = False
                     players[bullet.playerId].kills+=1
                     bullet.kill()
-
+            
             #if bullets hit remove them tbh this is copied code probably could do other collison checks
             #with this, platforms?
             pygame.sprite.groupcollide(bullets, bullets, True, True, collided=collision_check)
@@ -413,8 +414,18 @@ def updateSprites():
             
             #write the kills to the screen
             screen.blit(text_surf, text_rect)
-        
+         
+        else:
+            print("he dead")
+            # dead_rect = pygame.Rect(player.rect.x, player.rect.y, player.rect.w, player.rect.h)
+            # pygame.draw.rect(screen, (255,0,0), dead_rect)        
 
+            s = pygame.Surface((player.rect.width, player.rect.height))  # the size of your rect
+            s.fill((255,0,0))           # this fills the entire surface
+            s.set_alpha(0)                # alpha level
+            
+            screen.blit(s, (player.rect.x, player.rect.y))
+            
         #use this to print kills at top of screen
         # text = str(player.kills)
         # if playerNum == 0:
