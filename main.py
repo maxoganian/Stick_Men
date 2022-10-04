@@ -265,12 +265,14 @@ class Platform(pygame.sprite.Sprite):
         if(self.type == "moving"):
             if self.stepsTillEnd > 0:
                 self.rect.move_ip(self.xVel, self.yVel)
-            else:
+            elif self.stepsTillEnd < 0:
                 self.rect.move_ip(-self.xVel, -self.yVel)
 
+            self.stepsTillEnd-=1
             if self.stepsTillEnd < (-self.origStepsTillEnd):
                 self.stepsTillEnd = self.origStepsTillEnd
-            self.stepsTillEnd-=1
+
+            
 #game window width and height
 WIDTH = 1000
 HEIGHT = 600
