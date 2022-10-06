@@ -19,6 +19,8 @@ class Player(pygame.sprite.Sprite):
         self.yVel = 0
         self.xVel = 0
         self.isAlive = True
+        self.alphaLevel = 0
+        self.alphaIsDecreasing = True
 
         self.jumpHeight = int(config['DEFAULTS']['player_jump_velocity'])
         self.gravPower = int(config['DEFAULTS']['gravity_acceleration'])
@@ -338,6 +340,32 @@ makePlatforms()
 
 print("platformsFINAL: " + str(platforms))
 
+class ExplosionPiece(pygame.sprite.Sprite):
+    def __init__ (self, image, x, y, xVel, yVel):
+        super(ExplosionPiece, self).__init__()
+        self.xVel = xVel
+        self.yVel = yVel
+
+        self.surf = pygame.image.load(image)
+        self.surf = pygame.transform.scale(self.surf, (5, 5))
+        self.rect = self.surf.get_rect(center = (x,y))
+        
+        self.aliveCounter = 0
+
+    def update(self):
+        self.rect.move_ip(self.xVel, self.yVel)
+        self.aliveCounter += 1
+
+explosionPieces = pygame.sprite.Group()
+
+def makeExplosion(image, startX, startY):
+    numPieces = random.randint(5,10)
+
+    for i in range(numPieces):
+        xVel = random.randint(-8,8)
+        yVel = random.randint(-8,8)
+        explosionPieces.add(ExplosionPiece(image, startX, startY, xVel, yVel))
+
 def drawSprites():
     # Draw all sprites
     for bullet in bullets:
@@ -348,18 +376,44 @@ def drawSprites():
         bullet.shotCounter+=1
         screen.blit(bullet.surf, bullet.rect)
 
+    for player in players:
+        player.surf.set_alpha(player.alphaLevel) # alpha level
+        screen.blit(player.surf, player.rect)
+        
+        #death animation:
+        if not player.isAlive:
+            alphaChange = 7
+
+            if player.alphaIsDecreasing:
+                player.alphaLevel-=alphaChange  
+            else:
+                player.alphaLevel+=alphaChange
+
+            if player.alphaLevel >= (100-alphaChange): 
+                player.alphaIsDecreasing = True
+
+            elif player.alphaLevel <= alphaChange:
+                player.alphaIsDecreasing = False
+
+        else:
+            player.alphaLevel = 255
+
+    for i, hat in enumerate(hats):
+        hat.update(players[i])
+        hat.surf.set_alpha(players[i].alphaLevel) #so we can fade on death animation
+        screen.blit(hat.surf, hat.rect)
+
+    for piece in explosionPieces:
+        piece.update()
+        screen.blit(piece.surf, piece.rect)
+        #keep explosion from going thorugh platforms
+        pygame.sprite.groupcollide(explosionPieces, platforms, True, False, collided=collision_check) 
+        if piece.aliveCounter > 10:
+            piece.kill()
+
     for platform in platforms:
         #platform.update()
         screen.blit(platform.surf, platform.rect)
-
-    for player in players:
-        #if player.isAlive:
-        screen.blit(player.surf, player.rect)
-    
-    for i, hat in enumerate(hats):
-        hat.update(players[i])
-        if hat.isAlive:
-            screen.blit(hat.surf, hat.rect)
 
 def updateSprites():
     for platform in platforms:
@@ -400,6 +454,11 @@ def updateSprites():
                     players[bullet.playerId].kills+=1
                     bullet.kill()
             
+            if not player.isAlive:
+                player.alphaLevel = 0
+                x, y = player.rect.center
+                makeExplosion(("images/hat" + str(playerNum+1) + ".png"), x, y)
+
             #if bullets hit remove them tbh this is copied code probably could do other collison checks
             #with this, platforms?
             pygame.sprite.groupcollide(bullets, bullets, True, True, collided=collision_check)
@@ -415,17 +474,6 @@ def updateSprites():
             #write the kills to the screen
             screen.blit(text_surf, text_rect)
          
-        else:
-            print("he dead")
-            # dead_rect = pygame.Rect(player.rect.x, player.rect.y, player.rect.w, player.rect.h)
-            # pygame.draw.rect(screen, (255,0,0), dead_rect)        
-
-            s = pygame.Surface((player.rect.width, player.rect.height))  # the size of your rect
-            s.fill((255,0,0))           # this fills the entire surface
-            s.set_alpha(0)                # alpha level
-            
-            screen.blit(s, (player.rect.x, player.rect.y))
-            
         #use this to print kills at top of screen
         # text = str(player.kills)
         # if playerNum == 0:
