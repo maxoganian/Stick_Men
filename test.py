@@ -1,170 +1,135 @@
-import pygame
-from pygame.locals import *
-import sys
-import random
- 
-pygame.init()
-vec = pygame.math.Vector2 #2 for two dimensional
- 
-HEIGHT = 450
-WIDTH = 400
-ACC = 0.5
-FRIC = -0.12
-FPS = 60
- 
-FramePerSec = pygame.time.Clock()
- 
-displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Game")
- 
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__() 
-        #self.image = pygame.image.load("character.png")
-        self.surf = pygame.Surface((30, 30))
-        self.surf.fill((255,255,0))
-        self.rect = self.surf.get_rect()
-   
-        self.pos = vec((10, 360))
-        self.vel = vec(0,0)
-        self.acc = vec(0,0)
-        self.jumping = False
- 
-    def move(self):
-        self.acc = vec(0,0.5)
-    
-        pressed_keys = pygame.key.get_pressed()
-                
-        if pressed_keys[K_LEFT]:
-            self.acc.x = -ACC
-        if pressed_keys[K_RIGHT]:
-            self.acc.x = ACC
-                 
-        self.acc.x += self.vel.x * FRIC
-        self.vel += self.acc
-        self.pos += self.vel + 0.5 * self.acc
-         
-        if self.pos.x > WIDTH:
-            self.pos.x = 0
-        if self.pos.x < 0:
-            self.pos.x = WIDTH
-             
-        self.rect.midbottom = self.pos
- 
-    def jump(self): 
-        hits = pygame.sprite.spritecollide(self, platforms, False)
-        if hits and not self.jumping:
-           self.jumping = True
-           self.vel.y = -15
- 
-    def cancel_jump(self):
-        if self.jumping:
-            if self.vel.y < -3:
-                self.vel.y = -3
- 
-    def update(self):
-        hits = pygame.sprite.spritecollide(self ,platforms, False)
-        if self.vel.y > 0:        
-            if hits:
-                if self.pos.y < hits[0].rect.bottom:               
-                    self.pos.y = hits[0].rect.top +1
-                    self.vel.y = 0
-                    self.jumping = False
-                
-                # if self.pos.y > hits[0].rect.top:
-                #     self.pos.y = hits[0].rect.bottom -1
-                #     self.vel.y = 0
-                #     self.jumping = False
- 
-class platform(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.surf = pygame.Surface((random.randint(50,100), 12))
-        self.surf.fill((0,255,0))
-        self.rect = self.surf.get_rect(center = (random.randint(0,WIDTH-10),
-                                                 random.randint(0, HEIGHT-30)))
- 
-    def move(self):
-        pass
- 
- 
-def check(platform, groupies):
-    if pygame.sprite.spritecollideany(platform,groupies):
-        return True
+import pygame, sys # import pygame and sys
+
+clock = pygame.time.Clock() # set up the clock
+
+from pygame.locals import * # import pygame modules
+pygame.init() # initiate pygame
+
+pygame.display.set_caption('Pygame Window') # set the window name
+
+WINDOW_SIZE = (600,400) # set up window size
+
+screen = pygame.display.set_mode(WINDOW_SIZE,0,32) # initiate screen
+
+display = pygame.Surface((300, 200))
+
+
+player_image = pygame.image.load('player.png').convert()
+player_image.set_colorkey((255, 255, 255))
+
+grass_image = pygame.image.load('grass.png')
+TILE_SIZE = grass_image.get_width()
+
+dirt_image = pygame.image.load('dirt.png')
+
+game_map = [['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','2','2','2','2','2','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['2','2','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','2','2'],
+            ['1','1','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1']]
+
+def collision_test(rect, tiles):
+    hit_list = []
+    for tile in tiles:
+        if rect.colliderect(tile):
+            hit_list.append(tile)
+    return hit_list
+
+def move(rect, movement, tiles):
+    collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False}
+    rect.x += movement[0]
+    hit_list = collision_test(rect, tiles)
+    for tile in hit_list:
+        if movement[0] > 0:
+            rect.right = tile.left
+            collision_types['right'] = True
+        elif movement[0] < 0:
+            rect.left = tile.right
+            collision_types['left'] = True
+    rect.y += movement[1]
+    hit_list = collision_test(rect, tiles)
+    for tile in hit_list:
+        if movement[1] > 0:
+            rect.bottom = tile.top
+            collision_types['bottom'] = True
+        elif movement[1] < 0:
+            rect.top = tile.bottom
+            collision_types['top'] = True
+    return rect, collision_types
+
+moving_right = False
+moving_left = False
+
+player_y_momentum = 0
+air_timer = 0
+
+player_rect = pygame.Rect(50, 50, player_image.get_width(), player_image.get_height())
+test_rect = pygame.Rect(100,100,100,50)
+
+while True: # game loop
+    display.fill((146,244,255))
+
+    tile_rects = []
+    y = 0
+    for row in game_map:
+        x = 0
+        for tile in row:
+            if tile == '1':
+                display.blit(dirt_image, (x * TILE_SIZE, y * TILE_SIZE))
+            if tile == '2':
+                display.blit(grass_image, (x * TILE_SIZE, y * TILE_SIZE))
+            if tile != '0':
+                tile_rects.append(pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+            x += 1
+        y += 1
+
+    player_movement = [0, 0]
+    if moving_right:
+        player_movement[0] += 2
+    if moving_left:
+        player_movement[0] -= 2
+    player_movement[1] += player_y_momentum
+    player_y_momentum += 0.2
+    if player_y_momentum > 3:
+        player_y_momentum = 3
+
+    player_rect, collisions = move(player_rect, player_movement, tile_rects)
+
+    if collisions['bottom']:
+        player_y_momentum = 0
+        air_timer = 0
     else:
-        for entity in groupies:
-            if entity == platform:
-                continue
-            if (abs(platform.rect.top - entity.rect.bottom) < 40) and (abs(platform.rect.bottom - entity.rect.top) < 40):
-                return True
-        C = False
- 
-def plat_gen():
-    while len(platforms) < 6:
-        width = random.randrange(50,100)
-        p  = platform()      
-        C = True
-         
-        while C:
-             p = platform()
-             p.rect.center = (random.randrange(0, WIDTH - width),
-                              random.randrange(-50, 0))
-             C = check(p, platforms)
-        platforms.add(p)
-        all_sprites.add(p)
- 
- 
-        
-PT1 = platform()
-P1 = Player()
- 
-PT1.surf = pygame.Surface((WIDTH, 20))
-PT1.surf.fill((255,0,0))
-PT1.rect = PT1.surf.get_rect(center = (WIDTH/2, HEIGHT - 10))
- 
-all_sprites = pygame.sprite.Group()
-all_sprites.add(PT1)
-all_sprites.add(P1)
- 
-platforms = pygame.sprite.Group()
-platforms.add(PT1)
- 
-for x in range(random.randint(4,5)):
-    C = True
-    pl = platform()
-    while C:
-        pl = platform()
-        C = check(pl, platforms)
-    platforms.add(pl)
-    all_sprites.add(pl)
- 
- 
-while True:
-    P1.update()
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.KEYDOWN:    
-            if event.key == pygame.K_SPACE:
-                P1.jump()
-        if event.type == pygame.KEYUP:    
-            if event.key == pygame.K_SPACE:
-                P1.cancel_jump()  
- 
-    if P1.rect.top <= HEIGHT / 3:
-        P1.pos.y += abs(P1.vel.y)
-        for plat in platforms:
-            plat.rect.y += abs(P1.vel.y)
-            if plat.rect.top >= HEIGHT:
-                plat.kill()
- 
-    plat_gen()
-    displaysurface.fill((0,0,0))
-     
-    for entity in all_sprites:
-        displaysurface.blit(entity.surf, entity.rect)
-        entity.move()
- 
-    pygame.display.update()
-    FramePerSec.tick(FPS)
+        air_timer += 1
+
+    display.blit(player_image, (player_rect.x, player_rect.y))
+
+    for event in pygame.event.get(): # event loop
+        if event.type == QUIT: # check for window quit
+            pygame.quit() # stop pygame
+            sys.exit() # stop script
+        if event.type == KEYDOWN:
+            if event.key == K_RIGHT:
+                moving_right = True
+            if event.key == K_LEFT:
+                moving_left = True
+            if event.key == K_UP:
+                if air_timer < 6:
+                    player_y_momentum = -5
+        if event.type == KEYUP:
+            if event.key == K_RIGHT:
+                moving_right = False
+            if event.key == K_LEFT:
+                moving_left = False
+
+    surf = pygame.transform.scale(display, WINDOW_SIZE)
+    screen.blit(surf, (0, 0))
+    pygame.display.update() # update display
+    clock.tick(60) # maintain 60 fps
