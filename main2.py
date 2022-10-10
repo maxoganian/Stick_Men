@@ -19,10 +19,12 @@ HEIGHT = 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 #Constants will be from config in game
-JUMP = 10
+JUMP = 15
 GRAVITY = .5
-ACC = 3
+ACC = 2
 FRIC = -.15
+
+MAXVEL = 20
 
 class Sprite(pygame.sprite.Sprite):
     def __init__ (self, image, x, y, xVel = 0, yVel = 0, xAcc = 0, yAcc = 0):
@@ -41,6 +43,10 @@ class Sprite(pygame.sprite.Sprite):
 
         x,y = self.rect.center
 
+
+        if self.vel.x > MAXVEL:
+            self.vel.x = MAXVEL
+
         x+= self.vel.x
         
         self.rect.center = (x,y)
@@ -49,6 +55,9 @@ class Sprite(pygame.sprite.Sprite):
 
         x,y = self.rect.center
 
+        if self.vel.y > MAXVEL:
+            self.vel.y = MAXVEL
+       
         y+= self.vel.y
         
         self.rect.center = (x,y)
@@ -102,10 +111,10 @@ class Player(Sprite):
         pressed_keys = pygame.key.get_pressed()
 
         if pressed_keys[pygame.K_UP]:
-            self.rect.move_ip(0,2)
+            self.rect.move_ip(0,11)
             if pygame.sprite.spritecollide(player,platforms, False): 
                 self.vel.y = -JUMP
-        
+            self.rect.move_ip(0,-11)
         self.vel.y += self.acc.y
         
         x,y = self.rect.center
@@ -134,33 +143,18 @@ def moveAll(player, platforms):
     
     if hits:
         hit_plat = hits[len(hits)-1] #this way we take the last hit plat
-        #all this keeps the player out of platforms
-        #its complicated because platforms move too
         
-        if player.vel.x > 0: #if player is moving right
-            #if the platform is still or moving left, then we are aproaching from the left    
-            if hit_plat.vel.x <= 0: 
-                player.rect.right = hit_plat.rect.left
-            else: #otherwise we are aproaching from the right
-                player.rect.right = hit_plat.rect.left
-        
-        #else if the player is moving left
-        elif player.vel.x < 0:
-            if hit_plat.vel.x >= 0: #same thing but flipped (the plat is moving right or still)
-                player.rect.left = hit_plat.rect.right
-            else:
-                player.rect.left = hit_plat.rect.right
-       
-        #otherwise player is still and plats hit the player
-        else:
-            if hit_plat.vel.x < 0:
-                player.rect.right = hit_plat.rect.left
-            elif hit_plat.vel.x > 0:
-                player.rect.left = hit_plat.rect.right
+        #now decide what side of the platform were on and adjust
+        #this method fails if the player moves to quickly into a skinny platform
+        #this is rare, but is why we have to run at 30fps
 
-        # #if the player lands ontop of a moving platform it moves with the plat
-        # player.rect.x += hit_plat.vel.x
-    
+        if (player.rect.left + player.rect.width/2) > (hit_plat.rect.left + hit_plat.rect.width/2):#we are on the right
+            player.rect.left = hit_plat.rect.right
+        else:
+            player.rect.right = hit_plat.rect.left  
+
+        player.vel.x = platform.vel.x  
+
     #move y second
     for p in platforms:
         p.move_y()
@@ -171,22 +165,19 @@ def moveAll(player, platforms):
     if hits:
         hit_plat = hits[len(hits)-1] #this way we take the last hit plat
         
-        if player.vel.y > 0:
+        #same system as horizontal movement
+        if (player.rect.top + player.rect.h/2) < (hit_plat.rect.top + hit_plat.rect.h/2):#we are on the right
             player.rect.bottom = hit_plat.rect.top
-        elif player.vel.x < 0:
-            player.rect.top = hit_plat.rect.bottom
         else:
-            if hit_plat.vel.x < 0:
-                player.rect.right = hit_plat.rect.left
-            elif hit_plat.vel.x > 0:
-                player.rect.left = hit_plat.rect.right
+            player.rect.top = hit_plat.rect.bottom
+
         player.vel.y = hit_plat.vel.y
 
 player = Player(500, 100)
 
 platforms = pygame.sprite.Group()
-platforms.add(Platform(200, 500, 500, 10, 0, 0))
-platforms.add(Platform(200, 470, 300, 10, -10, 0))
+platforms.add(Platform(250, 500, 500, 10, 0, 0))
+platforms.add(Platform(200, 460, 100, 10, 0, -10))
 
 running = True
 while running:
@@ -207,4 +198,4 @@ while running:
     # Update the display
     pygame.display.flip()
 
-    clock.tick(20)
+    clock.tick(30)
