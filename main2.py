@@ -24,7 +24,7 @@ GRAVITY = .5
 ACC = 2
 FRIC = -.15
 
-MAXVEL = 20
+MAXVEL = 30
 
 class Sprite(pygame.sprite.Sprite):
     def __init__ (self, image, x, y, xVel = 0, yVel = 0, xAcc = 0, yAcc = 0):
@@ -95,6 +95,9 @@ class Player(Sprite):
         
         self.vel.x += self.acc.x
         
+        if self.vel.x > MAXVEL:
+            self.vel.x = MAXVEL
+
         x,y = self.rect.center
         
         x += int(self.vel.x + 0.5 * self.acc.x) #take integer b/c had some trouble with stopping
@@ -117,6 +120,9 @@ class Player(Sprite):
             self.rect.move_ip(0,-11)
         self.vel.y += self.acc.y
         
+        if self.vel.y > MAXVEL:
+            self.vel.y = MAXVEL
+       
         x,y = self.rect.center
 
         y += self.vel.y + 0.5 * self.acc.y
