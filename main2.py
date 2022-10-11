@@ -37,10 +37,8 @@ class Sprite(pygame.sprite.Sprite):
 
         self.vel = vect(xVel, yVel)
         self.acc = vect(xAcc, yAcc)
-    
-    def move_x(self):
-        self.vel.x += self.acc.x
 
+    def move_x(self):
         x,y = self.rect.center
 
 
@@ -50,9 +48,8 @@ class Sprite(pygame.sprite.Sprite):
         x+= self.vel.x
         
         self.rect.center = (x,y)
+   
     def move_y(self):
-        self.vel.y += self.acc.y
-
         x,y = self.rect.center
 
         if self.vel.y > MAXVEL:
@@ -61,6 +58,11 @@ class Sprite(pygame.sprite.Sprite):
         y+= self.vel.y
         
         self.rect.center = (x,y)
+    
+    def move(self):
+        self.move_x()
+        self.move_y()
+
     def draw(self):
         if self.rect.top > HEIGHT:
             self.rect.bottom = 0
@@ -81,10 +83,8 @@ class Player(Sprite):
         #self.surf.convert()
         #self.surf.set_colorkey((0, 0, 0))
 
-    def move_x(self):
+    def move_x(self, pressed_keys):
         self.acc.x = 0
-
-        pressed_keys = pygame.key.get_pressed()
         
         if pressed_keys[pygame.K_LEFT]:
             self.acc.x = -ACC
@@ -103,21 +103,37 @@ class Player(Sprite):
         x += int(self.vel.x + 0.5 * self.acc.x) #take integer b/c had some trouble with stopping
                 
         self.rect.center = (x,y)
-    
-    def move_y(self):
+
+
+        hits = pygame.sprite.spritecollide(self,platforms, False)
         
+        if hits:
+            hit_plat = hits[-1] #this way we take the last hit plat
+            
+            #now decide what side of the platform were on and adjust
+            #this method fails if the player moves to quickly into a skinny platform
+            #this is rare, but is why we have to run at 30fps
+
+            if (self.rect.left + self.rect.width/2) > (hit_plat.rect.left + hit_plat.rect.width/2):#we are on the right
+                self.rect.left = hit_plat.rect.right
+            else:
+                self.rect.right = hit_plat.rect.left  
+
+            self.vel.x = platform.vel.x  
+
+    def move_y(self, pressed_keys, platforms):
+
         hits = pygame.sprite.spritecollide(self,platforms, False)
         
         if not hits:
             self.acc.y = GRAVITY
 
-        pressed_keys = pygame.key.get_pressed()
-
         if pressed_keys[pygame.K_UP]:
             self.rect.move_ip(0,11)
-            if pygame.sprite.spritecollide(player,platforms, False): 
+            if pygame.sprite.spritecollide(self,platforms, False): 
                 self.vel.y = -JUMP
             self.rect.move_ip(0,-11)
+        
         self.vel.y += self.acc.y
         
         if self.vel.y > MAXVEL:
@@ -125,10 +141,23 @@ class Player(Sprite):
        
         x,y = self.rect.center
 
-        y += self.vel.y + 0.5 * self.acc.y
-
+        y += self.vel.y + 0.5 * self.acc.y**2
+       
         self.rect.center = (x,y)
 
+        hits = pygame.sprite.spritecollide(self,platforms, False)
+        
+        if hits:
+            hit_plat = hits[-1] #this way we take the last hit plat
+            
+            #same system as horizontal movement
+            if (self.rect.top + self.rect.h/2) < (hit_plat.rect.top + hit_plat.rect.h/2):#we are on the bottom
+                self.rect.bottom = hit_plat.rect.top
+            else:
+                self.rect.top = hit_plat.rect.bottom
+
+            self.vel.y = hit_plat.vel.y
+        
 class Platform(Sprite):
     def __init__ (self, x, y, w, h, xVel = 0, yVel = 0):
         super(Platform, self).__init__("images/platform.png", x, y, xVel, yVel)
@@ -136,51 +165,26 @@ class Platform(Sprite):
         self.rect.h = h
 
         self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height))
+
 def moveAll(players, platforms):
-    "Deal with player hitting stuff"
-    #move x first to simplify detection
-    for p in platforms:
-        p.move_x()
+    "Move all sprites"
     
-    for player in players:
-        
-        player.move_x()
-
-        hits = pygame.sprite.spritecollide(player,platforms, False)
-        
-        if hits:
-            hit_plat = hits[len(hits)-1] #this way we take the last hit plat
-            
-            #now decide what side of the platform were on and adjust
-            #this method fails if the player moves to quickly into a skinny platform
-            #this is rare, but is why we have to run at 30fps
-
-            if (player.rect.left + player.rect.width/2) > (hit_plat.rect.left + hit_plat.rect.width/2):#we are on the right
-                player.rect.left = hit_plat.rect.right
-            else:
-                player.rect.right = hit_plat.rect.left  
-
-            player.vel.x = platform.vel.x  
-
+    pressed_keys = pygame.key.get_pressed()
+    
+    
     #move y second
     for p in platforms:
         p.move_y()
 
     for player in players:
-        player.move_y()
-        
-        hits = pygame.sprite.spritecollide(player,platforms, False)
-        
-        if hits:
-            hit_plat = hits[len(hits)-1] #this way we take the last hit plat
-            
-            #same system as horizontal movement
-            if (player.rect.top + player.rect.h/2) < (hit_plat.rect.top + hit_plat.rect.h/2):#we are on the right
-                player.rect.bottom = hit_plat.rect.top
-            else:
-                player.rect.top = hit_plat.rect.bottom
-
-            player.vel.y = hit_plat.vel.y
+        player.move_y(pressed_keys, platforms)
+   
+    #move x first to simplify detection
+    for p in platforms:
+        p.move_x() 
+    
+    for player in players:
+        player.move_x(pressed_keys)
 
 players = pygame.sprite.Group()
 players.add(Player(200, 100))
@@ -188,7 +192,7 @@ players.add(Player(800, 100))
 
 platforms = pygame.sprite.Group()
 platforms.add(Platform(250, 500, 500, 10, 0, 0))
-platforms.add(Platform(200, 460, 100, 10, 0, -10))
+platforms.add(Platform(200, 460, 100, 10, 4, -4))
 
 running = True
 while running:
