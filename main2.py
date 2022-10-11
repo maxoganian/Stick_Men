@@ -106,7 +106,7 @@ class Player(Sprite):
     
     def move_y(self):
         
-        hits = pygame.sprite.spritecollide(player,platforms, False)
+        hits = pygame.sprite.spritecollide(self,platforms, False)
         
         if not hits:
             self.acc.y = GRAVITY
@@ -136,50 +136,55 @@ class Platform(Sprite):
         self.rect.h = h
 
         self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height))
-def moveAll(player, platforms):
+def moveAll(players, platforms):
     "Deal with player hitting stuff"
-
     #move x first to simplify detection
     for p in platforms:
         p.move_x()
-    player.move_x()
-
-
-    hits = pygame.sprite.spritecollide(player,platforms, False)
     
-    if hits:
-        hit_plat = hits[len(hits)-1] #this way we take the last hit plat
+    for player in players:
         
-        #now decide what side of the platform were on and adjust
-        #this method fails if the player moves to quickly into a skinny platform
-        #this is rare, but is why we have to run at 30fps
+        player.move_x()
 
-        if (player.rect.left + player.rect.width/2) > (hit_plat.rect.left + hit_plat.rect.width/2):#we are on the right
-            player.rect.left = hit_plat.rect.right
-        else:
-            player.rect.right = hit_plat.rect.left  
+        hits = pygame.sprite.spritecollide(player,platforms, False)
+        
+        if hits:
+            hit_plat = hits[len(hits)-1] #this way we take the last hit plat
+            
+            #now decide what side of the platform were on and adjust
+            #this method fails if the player moves to quickly into a skinny platform
+            #this is rare, but is why we have to run at 30fps
 
-        player.vel.x = platform.vel.x  
+            if (player.rect.left + player.rect.width/2) > (hit_plat.rect.left + hit_plat.rect.width/2):#we are on the right
+                player.rect.left = hit_plat.rect.right
+            else:
+                player.rect.right = hit_plat.rect.left  
+
+            player.vel.x = platform.vel.x  
 
     #move y second
     for p in platforms:
         p.move_y()
-    player.move_y()
 
-    hits = pygame.sprite.spritecollide(player,platforms, False)
-    
-    if hits:
-        hit_plat = hits[len(hits)-1] #this way we take the last hit plat
+    for player in players:
+        player.move_y()
         
-        #same system as horizontal movement
-        if (player.rect.top + player.rect.h/2) < (hit_plat.rect.top + hit_plat.rect.h/2):#we are on the right
-            player.rect.bottom = hit_plat.rect.top
-        else:
-            player.rect.top = hit_plat.rect.bottom
+        hits = pygame.sprite.spritecollide(player,platforms, False)
+        
+        if hits:
+            hit_plat = hits[len(hits)-1] #this way we take the last hit plat
+            
+            #same system as horizontal movement
+            if (player.rect.top + player.rect.h/2) < (hit_plat.rect.top + hit_plat.rect.h/2):#we are on the right
+                player.rect.bottom = hit_plat.rect.top
+            else:
+                player.rect.top = hit_plat.rect.bottom
 
-        player.vel.y = hit_plat.vel.y
+            player.vel.y = hit_plat.vel.y
 
-player = Player(500, 100)
+players = pygame.sprite.Group()
+players.add(Player(200, 100))
+players.add(Player(800, 100))
 
 platforms = pygame.sprite.Group()
 platforms.add(Platform(250, 500, 500, 10, 0, 0))
@@ -194,9 +199,10 @@ while running:
 
     screen.fill((0,0,100))
 
-    moveAll(player, platforms)
+    moveAll(players, platforms)
 
-    player.draw()
+    for player in players:
+        player.draw()
 
     for platform in platforms:
         platform.draw()
