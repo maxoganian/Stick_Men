@@ -149,10 +149,13 @@ class Player(Sprite):
 class Platform(Sprite):
     def __init__ (self, x, y, w, h, xVel = 0, yVel = 0):
         super(Platform, self).__init__("images/platform.png", x, y, xVel, yVel)
+        
         self.rect.w = w
         self.rect.h = h
 
         self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height))
+
+        self.rect.center = (x,y)
 
 def moveAll(players, platforms):
     "Move all sprites"
