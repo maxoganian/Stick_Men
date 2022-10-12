@@ -10,9 +10,6 @@ FRIC = -.15
 
 MAXVEL = 30
 
-WIDTH = 1000
-HEIGHT = 600
-
 
 class Sprite(pygame.sprite.Sprite):
     def __init__ (self, image, x, y, xVel = 0, yVel = 0, xAcc = 0, yAcc = 0):
@@ -51,16 +48,17 @@ class Sprite(pygame.sprite.Sprite):
         self.move_x()
         self.move_y()
 
-    def draw(self, screen):
-        if self.rect.top > HEIGHT:
+    def keepOnScreen(self, width, height):
+        if self.rect.top > height:
             self.rect.bottom = 0
         if self.rect.bottom < 0:
-            self.rect.top = HEIGHT       
-        if self.rect.left > WIDTH:
+            self.rect.top = height       
+        if self.rect.left > width:
             self.rect.right = 0
         if self.rect.right < 0:
-            self.rect.left = WIDTH
+            self.rect.left = width
         
+    def draw(self, screen):
         screen.blit(self.surf, self.rect)
          
 class Player(Sprite):
@@ -68,8 +66,8 @@ class Player(Sprite):
         super(Player, self).__init__("images/stick_man_running0.png", x, y, 0, 0, 0, GRAVITY)
 
         #make image background transperent
-        #self.surf.convert()
-        #self.surf.set_colorkey((0, 0, 0))
+        # self.surf.convert()
+        # self.surf.set_colorkey((0, 0, 0))
 
     def move_x(self, pressed_keys, platforms):
         self.acc.x = 0
@@ -93,7 +91,7 @@ class Player(Sprite):
         self.rect.center = (x,y)
 
 
-        hits = pygame.sprite.spritecollide(self,platforms, False)
+        hits = pygame.sprite.spritecollide(self, platforms, False)
         
         if hits:
             hit_plat = hits[-1] #this way we take the last hit plat

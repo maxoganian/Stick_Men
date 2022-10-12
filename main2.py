@@ -25,8 +25,8 @@ players.add(Player(200, 100))
 players.add(Player(800, 100))
 
 platforms = pygame.sprite.Group()
-platforms.add(Platform(250, 500, 500, 10, 0, 0))
-platforms.add(Platform(200, 460, 100, 10, 4, -4))
+platforms.add(Platform(300, 500, 500, 10, 0, 0))
+platforms.add(Platform(200, 460, 100, 10, 0, 4))
 
 running = True
 while running:
@@ -40,9 +40,13 @@ while running:
     moveAll(players, platforms)
 
     for player in players:
+        
+        player.keepOnScreen(WIDTH, HEIGHT)
         player.draw(screen)
 
     for platform in platforms:
+
+        platform.keepOnScreen(WIDTH, HEIGHT)
         platform.draw(screen)
     
     # Update the display
