@@ -20,13 +20,23 @@ HEIGHT = 600
 # The size is determined by the constant WIDTH and HEIGHT
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-players = pygame.sprite.Group()
-players.add(Player(200, 100))
-players.add(Player(800, 100))
+#hats and payers is a list because pg groups arent scriptable and players dont get popped
+players = []
+hats = []
+
+players.append(Player(200, 100, 0))
+players.append(Player(800, 100, 1))
+
+for player in players:
+    hats.append(Hat(player))
 
 platforms = pygame.sprite.Group()
 platforms.add(Platform(300, 500, 500, 10, 0, 0))
-platforms.add(Platform(200, 460, 100, 10, 0, 4))
+platforms.add(Platform(200, 470, 100, 10, 0, 0))
+platforms.add(Platform(300, 300, 100, 10))
+
+#group to hold bullets
+bullets = pygame.sprite.Group()
 
 running = True
 while running:
@@ -37,16 +47,26 @@ while running:
 
     screen.fill((0,0,100))
 
-    moveAll(players, platforms)
+    updateAll(bullets, hats, players, platforms)
+
+
+    for bullet in bullets:
+        
+        bullet.updateBullet(WIDTH, HEIGHT)
+        bullet.draw(screen)
 
     for player in players:
         
-        player.keepOnScreen(WIDTH, HEIGHT)
+        player.update(WIDTH, HEIGHT)
         player.draw(screen)
+        
+        hats[player.id].draw(screen)
+
+        player.drawKillsAndShotRect(screen, hats[player.id])
 
     for platform in platforms:
 
-        platform.keepOnScreen(WIDTH, HEIGHT)
+        platform.update(WIDTH, HEIGHT)
         platform.draw(screen)
     
     # Update the display

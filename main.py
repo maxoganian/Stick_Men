@@ -217,7 +217,7 @@ class Bullet(pygame.sprite.Sprite):
             self.rect.left = WIDTH - 2
 
 def collision_check(sprite1, sprite2):
-    """Return True if sprites are colliding, unless it's the same sprite."""
+    "Return True if sprites are colliding, unless it's the same sprite."
     if sprite1 is not sprite2:
         return sprite1.rect.colliderect(sprite2.rect)
     else:  # Both sprites are the same object, so return False.
