@@ -31,12 +31,14 @@ for player in players:
     hats.append(Hat(player))
 
 platforms = pygame.sprite.Group()
-platforms.add(Platform(300, 500, 500, 10, 0, 0))
-platforms.add(Platform(200, 470, 100, 10, 0, 0))
-platforms.add(Platform(300, 300, 100, 10))
+
+makePlatforms(platforms)
 
 #group to hold bullets
 bullets = pygame.sprite.Group()
+
+#group to hold explosionPieces
+explosionPieces = pygame.sprite.Group()
 
 running = True
 while running:
@@ -45,9 +47,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    screen.fill((0,0,100))
+    screen.fill((0,0, 0))
 
-    updateAll(bullets, hats, players, platforms)
+    updateAll(bullets, hats, players, platforms, explosionPieces)
 
 
     for bullet in bullets:
@@ -68,6 +70,11 @@ while running:
 
         platform.update(WIDTH, HEIGHT)
         platform.draw(screen)
+
+    for piece in explosionPieces:
+
+        piece.updateExplos(WIDTH, HEIGHT, platforms, players)
+        piece.draw(screen)
     
     # Update the display
     pygame.display.flip()

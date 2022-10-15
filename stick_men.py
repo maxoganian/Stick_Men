@@ -1,5 +1,6 @@
 import pygame
 import configparser
+import random
 
 #Vect only used to organize the x and y
 vect = pygame.math.Vector2 #2 for two dimensional
@@ -19,7 +20,7 @@ MAXVEL = float(config['DEFAULTS']['MAXVEL'])
 BULLET_TIME = float(config['DEFAULTS']['BULLET_TIME'])
 BULLET_SPEED = float(config['DEFAULTS']['BULLET_SPEED'])
 SHOT_TIME = float(config['DEFAULTS']['SHOT_TIME'])
-
+EXPLOSION_SIZE = float(config['DEFAULTS']['EXPLOSION_SIZE'])
 #pygame init for joysticks and font
 pygame.init()
 
@@ -39,6 +40,10 @@ class Sprite(pygame.sprite.Sprite):
         self.acc = vect(xAcc, yAcc)
 
         self.isAlive = True
+
+        #make image background transperent
+        # self.surf.convert()
+        # self.surf.set_colorkey((0, 0, 0))
 
     def move_x(self):
         x,y = self.rect.center
@@ -90,13 +95,14 @@ class Player(Sprite):
 
         self.kills = 0 #stores the amount of kills the player has
 
-        #make image background transperent
-        # self.surf.convert()
-        # self.surf.set_colorkey((0, 0, 0))
-
+        #we need to set different keys for the two player
+        if id == 0:
+            self.keys = [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_SPACE]
+        else:
+            self.keys = [pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_f]
     def drawKillsAndShotRect(self, screen, hat):
         "Draws a rectangle to show how long until the next shot, and the kills the player has"
-        #we pass in hat so the kils move with the hat, and the hat doesn't cover them
+        #we pass in hat so the kills move with the hat, and the hat doesn't cover them
         if self.isAlive:
             shot_rect = pygame.Rect(hat.rect.x, hat.rect.y - 5, SHOT_TIME - self.shotCounter, 2)
             shot_rect.center = (hat.rect.x + hat.rect.width/2, hat.rect.y - 5)
@@ -113,10 +119,10 @@ class Player(Sprite):
     def move_x(self, pressed_keys, platforms):
         self.acc.x = 0 #make sure player stops with no keys
         
-        #move off key pressed
-        if pressed_keys[pygame.K_LEFT]:
+        #move off of key presses
+        if pressed_keys[self.keys[1]]:
             self.acc.x = -ACC
-        if pressed_keys[pygame.K_RIGHT]:
+        if pressed_keys[self.keys[2]]:
             self.acc.x = ACC
             
         self.acc.x += self.vel.x * FRIC #slows player to imitate friction
@@ -152,7 +158,7 @@ class Player(Sprite):
         if not hits:
             self.acc.y = GRAVITY
 
-        if pressed_keys[pygame.K_UP]:
+        if pressed_keys[self.keys[0]]:
             self.rect.move_ip(0,11)
             if hitGroup(self, platforms): 
                 self.vel.y = -JUMP
@@ -211,15 +217,106 @@ class Bullet(Sprite):
             self.kill()
 
 class Platform(Sprite):
-    def __init__ (self, x, y, w, h, xVel = 0, yVel = 0):
-        super(Platform, self).__init__("images/platform.png", x, y, xVel, yVel)
+    def __init__ (self, platform):
         
-        self.rect.w = w
-        self.rect.h = h
+        #split platform into pieces we need
+        #first we split it to tuples then to usable variables that we need
+
+        if len(platform) == 5:#used to see if the platform has the variables for moving
+            start, rect, image, end, speed = platform
+            
+            endX, endY = end
+            
+            self.endX = endX*10
+            self.endY = endY*10
+
+            self.isMoving = True
+
+        else:#otherwise dont split end and speed
+            start, rect, image = platform
+            speed = (0,0) #if not moving our speed is 0
+
+            self.isMoving = False
+
+        #then tuples into usable variables
+        w, h = rect
+        xVel, yVel = speed
+
+        x,y = start
+        
+        self.startX = x*10
+        self.startY = y*10
+
+        super(Platform, self).__init__("images/platform.png", self.startX, self.startY, xVel, yVel)
+        
+        self.rect.w = w*10
+        self.rect.h = h*10
 
         self.surf = pygame.transform.scale(self.surf, (self.rect.width, self.rect.height)) #make the image match the rect
 
-        self.rect.center = (x,y) #the scaling seems to move the entire rect, this resets it
+        self.rect.center = (self.startX,self.startY) #the scaling seems to move the entire rect, this resets it
+
+    def move_plat_x(self):
+        self.move_x()
+        if self.isMoving: #check if its moving so we dont try to call variables that dotn exist
+            #these create the "bouncing" platforms
+            if (self.rect.x + self.rect.w/2) > self.endX:
+                self.vel.x = -self.vel.x
+
+            if (self.rect.x + self.rect.w/2) < self.startX:
+                self.vel.x = -self.vel.x
+
+    def move_plat_y(self):
+        self.move_y()
+        if self.isMoving: #check if its moving so we dont try to call variables that dotn exist
+            #these create the "bouncing" platforms
+            if (self.rect.y + self.rect.height/2) > self.endY:
+                self.vel.y = -self.vel.y
+
+            if (self.rect.y + self.rect.height/2) < self.startY:
+                self.vel.y = -self.vel.y
+
+class ExplosionPiece(Sprite):
+    def __init__(self, player):
+        #our exposion is just a random number of these pieces sent out at random velocities for a set time
+        #Rn we just use the hat images cause im lazy
+        x,y = player.rect.center #split center so it can be input into super
+
+        #random velocities for the piece
+        xVel = random.randint(-6, 6)
+        yVel = random.randint(-6, 6)
+
+        super(ExplosionPiece, self).__init__("images/piece"+str(player.id)+".png", x, y, xVel, yVel)
+
+        self.counter = 0
+
+    def updateExplos(self, w, h, platforms, players):
+        self.update(w, h)
+        #kill piece if its time runs out or it hits a plat
+        # i know it seems weird to let them go through players, but if the players are ontop of each other
+        #we still want an explosion
+        if self.counter > EXPLOSION_SIZE or hitGroup(self, platforms): 
+            self.kill()
+        self.counter+=1
+
+def makePlatforms(platforms):
+    levelNum = random.randint(0,1)
+    #levelNum = 1
+
+    level = 'LEVEL_' + str(levelNum)
+    
+    print(level)
+    for platform in platforms:
+        platform.kill()
+    
+    numPlatforms = int(config[level]['num_platforms'])
+
+    #first add statonary platforms then moving ones
+    for i in range(numPlatforms):
+       platform = eval(config[level]['p'+str(i)])
+       platforms.add(Platform(platform))
+    
+    print("platforms: " + str(platforms))
 
 def hitGroup(sprite1, spriteGroup, removeGroup = False):
     "Returns a list of all the items in spriteGroup sprite1 hits"
@@ -227,13 +324,13 @@ def hitGroup(sprite1, spriteGroup, removeGroup = False):
 
 def createBullets(player, bullets, pressed_keys):
     #ony fire after a certain amount of time has passed
-    if pressed_keys[pygame.K_SPACE] and player.shotCounter > SHOT_TIME:
+    if pressed_keys[player.keys[3]] and player.shotCounter > SHOT_TIME:
         bullets.add(Bullet(player))
         player.shotCounter = 0
     
     player.shotCounter+=1
 
-def checkForBulletPlayer(player, players, bullets):
+def checkForBulletPlayer(player, players, bullets, explosionPieces):
     "If bullet hits player kill player"
     #kill player:
     hits_player = hitGroup(player, bullets)
@@ -246,6 +343,8 @@ def checkForBulletPlayer(player, players, bullets):
             hit_bullet.kill() #remove bullet
             
             player.isAlive = False #kill player
+
+            makeExplosion(explosionPieces, player)
 
 def checkForBulletCollis(bullets, platforms):
     "If bullet hits platform or bullet hits bullet, kill bullet"
@@ -261,7 +360,14 @@ def collision_check(sprite1, sprite2):
     else:  # Both sprites are the same object, so return False.
         return False
 
-def updateAll(bullets, hats, players, platforms):
+def makeExplosion(explosionPieces, player):
+    numPieces = random.randint(8, 14)
+
+    for i in range(numPieces):
+        explosionPieces.add(ExplosionPiece(player))
+
+
+def updateAll(bullets, hats, players, platforms, explosionPieces):
     "Update all sprites"    
     pressed_keys = pygame.key.get_pressed()
 
@@ -270,7 +376,7 @@ def updateAll(bullets, hats, players, platforms):
 
     #move x first to simplify detection
     for p in platforms:
-        p.move_x() 
+        p.move_plat_x() 
     
     for player in players:
         if player.isAlive:
@@ -278,15 +384,14 @@ def updateAll(bullets, hats, players, platforms):
 
     #move y second
     for p in platforms:
-        p.move_y()
+        p.move_plat_y()
 
     for player in players:
         if player.isAlive:
-            checkForBulletPlayer(player, players, bullets)#pass players to increase kill counter im not a fan of this method
+            checkForBulletPlayer(player, players, bullets, explosionPieces)#pass players to increase kill counter im not a fan of this method
 
             hats[player.id].update(player) #putting hat movement here makes the hat follow the player, b/c the payer moves
                                            #after the hat
-
             player.move_y(pressed_keys, platforms)
             
             if player.vel.y < 0: #if the player is moving up we want the hat glued to their head
@@ -300,7 +405,11 @@ def updateAll(bullets, hats, players, platforms):
     for bullet in bullets:
         bullet.move()
 
-    checkForBulletCollis(bullets, platforms)
-
-
+    for piece in explosionPieces:
+        piece.move()
     
+    #if we press t choose a new random level, doesnt work amazing but this is a pretty temporary feature
+    if pressed_keys[pygame.K_t]: 
+        makePlatforms(platforms)
+
+    checkForBulletCollis(bullets, platforms)    
