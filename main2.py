@@ -5,6 +5,7 @@ import random
 import time
 
 from stick_men import * #import classes and functions
+from stick_men_func import *
 
 pygame.init()
 

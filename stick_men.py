@@ -21,6 +21,7 @@ BULLET_TIME = float(config['DEFAULTS']['BULLET_TIME'])
 BULLET_SPEED = float(config['DEFAULTS']['BULLET_SPEED'])
 SHOT_TIME = float(config['DEFAULTS']['SHOT_TIME'])
 EXPLOSION_SIZE = float(config['DEFAULTS']['EXPLOSION_SIZE'])
+
 #pygame init for joysticks and font
 pygame.init()
 
@@ -85,6 +86,11 @@ class Sprite(pygame.sprite.Sprite):
         if self.isAlive:
             screen.blit(self.surf, self.rect)
 
+
+    def hitGroup(self, spriteGroup, removeGroup = False):
+        "Returns a list of all the items in spriteGroup sprite1 hits"
+        return pygame.sprite.spritecollide(self, spriteGroup, removeGroup)
+
 class Player(Sprite):
     def __init__ (self, x, y, id):
         super(Player, self).__init__("images/stick_man_running0.png", x, y, 0, 0, 0, GRAVITY)
@@ -100,6 +106,7 @@ class Player(Sprite):
             self.keys = [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_SPACE]
         else:
             self.keys = [pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_f]
+
     def drawKillsAndShotRect(self, screen, hat):
         "Draws a rectangle to show how long until the next shot, and the kills the player has"
         #we pass in hat so the kills move with the hat, and the hat doesn't cover them
@@ -135,7 +142,7 @@ class Player(Sprite):
                 
         self.rect.center = (x,y) #set our position
 
-        hits = hitGroup(self, platforms)
+        hits = self.hitGroup(platforms)
         
         if hits:
             hit_plat = hits[0]
@@ -153,14 +160,14 @@ class Player(Sprite):
 
     def move_y(self, pressed_keys, platforms):
 
-        hits = hitGroup(self, platforms)
+        hits = self.hitGroup(platforms)
         
         if not hits:
             self.acc.y = GRAVITY
 
         if pressed_keys[self.keys[0]]:
             self.rect.move_ip(0,11)
-            if hitGroup(self, platforms): 
+            if self.hitGroup(platforms): 
                 self.vel.y = -JUMP
             self.rect.move_ip(0,-11)
         
@@ -172,7 +179,7 @@ class Player(Sprite):
        
         self.rect.center = (x,y)
 
-        hits = hitGroup(self, platforms)
+        hits = self.hitGroup(platforms)
         if hits:
 
             hit_plat = hits[0] #take the plat we are on
@@ -295,121 +302,6 @@ class ExplosionPiece(Sprite):
         #kill piece if its time runs out or it hits a plat
         # i know it seems weird to let them go through players, but if the players are ontop of each other
         #we still want an explosion
-        if self.counter > EXPLOSION_SIZE or hitGroup(self, platforms): 
+        if self.counter > EXPLOSION_SIZE or self.hitGroup(platforms): 
             self.kill()
         self.counter+=1
-
-def makePlatforms(platforms):
-    levelNum = random.randint(0,1)
-    #levelNum = 1
-
-    level = 'LEVEL_' + str(levelNum)
-    
-    print(level)
-    for platform in platforms:
-        platform.kill()
-    
-    numPlatforms = int(config[level]['num_platforms'])
-
-    #first add statonary platforms then moving ones
-    for i in range(numPlatforms):
-       platform = eval(config[level]['p'+str(i)])
-       platforms.add(Platform(platform))
-    
-    print("platforms: " + str(platforms))
-
-def hitGroup(sprite1, spriteGroup, removeGroup = False):
-    "Returns a list of all the items in spriteGroup sprite1 hits"
-    return pygame.sprite.spritecollide(sprite1, spriteGroup, removeGroup)
-
-def createBullets(player, bullets, pressed_keys):
-    #ony fire after a certain amount of time has passed
-    if pressed_keys[player.keys[3]] and player.shotCounter > SHOT_TIME:
-        bullets.add(Bullet(player))
-        player.shotCounter = 0
-    
-    player.shotCounter+=1
-
-def checkForBulletPlayer(player, players, bullets, explosionPieces):
-    "If bullet hits player kill player"
-    #kill player:
-    hits_player = hitGroup(player, bullets)
-    
-    if hits_player:
-        hit_bullet = hits_player[0]
-        if hit_bullet.playerId != player.id: #make sure the bullet isnt hitting its own player
-            players[hit_bullet.playerId].kills += 1 #increase payer that shot the bullets kill count
-
-            hit_bullet.kill() #remove bullet
-            
-            player.isAlive = False #kill player
-
-            makeExplosion(explosionPieces, player)
-
-def checkForBulletCollis(bullets, platforms):
-    "If bullet hits platform or bullet hits bullet, kill bullet"
-    pygame.sprite.groupcollide(bullets, platforms, True, False, collided=collision_check)
-
-    pygame.sprite.groupcollide(bullets, bullets, True, True, collided=collision_check)
-
-def collision_check(sprite1, sprite2):
-    "Return True if sprites are colliding, unless it's the same sprite."
-    #works with - pygame.sprite.groupcollide(explosionPieces, platforms, True, False, collided=collision_check) 
-    if sprite1 is not sprite2:
-        return sprite1.rect.colliderect(sprite2.rect)
-    else:  # Both sprites are the same object, so return False.
-        return False
-
-def makeExplosion(explosionPieces, player):
-    numPieces = random.randint(8, 14)
-
-    for i in range(numPieces):
-        explosionPieces.add(ExplosionPiece(player))
-
-
-def updateAll(bullets, hats, players, platforms, explosionPieces):
-    "Update all sprites"    
-    pressed_keys = pygame.key.get_pressed()
-
-    # have to deal with one dimension at a time b/c
-    # collision detection consequences are easier that way
-
-    #move x first to simplify detection
-    for p in platforms:
-        p.move_plat_x() 
-    
-    for player in players:
-        if player.isAlive:
-            player.move_x(pressed_keys, platforms)
-
-    #move y second
-    for p in platforms:
-        p.move_plat_y()
-
-    for player in players:
-        if player.isAlive:
-            checkForBulletPlayer(player, players, bullets, explosionPieces)#pass players to increase kill counter im not a fan of this method
-
-            hats[player.id].update(player) #putting hat movement here makes the hat follow the player, b/c the payer moves
-                                           #after the hat
-            player.move_y(pressed_keys, platforms)
-            
-            if player.vel.y < 0: #if the player is moving up we want the hat glued to their head
-                hats[player.id].update(player)
-
-            createBullets(player, bullets, pressed_keys)#creates bullets on key presss
-
-        if pressed_keys[pygame.K_r]: #realive players
-            player.isAlive = True
-
-    for bullet in bullets:
-        bullet.move()
-
-    for piece in explosionPieces:
-        piece.move()
-    
-    #if we press t choose a new random level, doesnt work amazing but this is a pretty temporary feature
-    if pressed_keys[pygame.K_t]: 
-        makePlatforms(platforms)
-
-    checkForBulletCollis(bullets, platforms)    
