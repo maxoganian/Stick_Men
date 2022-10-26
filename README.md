@@ -5,9 +5,13 @@
  
  This is a game I wrote to play on a home made arcade system I built.  It's in python and uses the pygame library.
  
- <img src="images/start_background.png>
+ <img src="images/start_background.png">
  
  The game is fairly straight forward.  The object is to score more points then your opponent. Each player can move and jump around stationary and moving platforms, using realistic physics.
+ 
+  <img src="images/stickMenScreenShot.png">
+  
+   <img src="images/IMG_20220719_154132432.jpg">
  
  ## Installation
  
