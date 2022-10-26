@@ -502,7 +502,7 @@ font = pygame.font.SysFont(None, 25)
 numJoysticks = pygame.joystick.get_count()
 print("Detected num Joysticks: ", numJoysticks)
 useJoysticks = numJoysticks >= numPlayers
-# init all the joysticks we have
+# init all the joysticks we hav
 joysticks = []
 for i in range(numJoysticks):
     j = pygame.joystick.Joystick(i)

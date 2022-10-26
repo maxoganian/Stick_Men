@@ -101,11 +101,7 @@ class Player(Sprite):
 
         self.kills = 0 #stores the amount of kills the player has
 
-        #we need to set different keys for the two player
-        if id == 0:
-            self.keys = [pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_SPACE]
-        else:
-            self.keys = [pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_f]
+        self.controls = [None]*4 #init controls will use in move functions, this stores joystick or key controls
 
     def drawKillsAndShotRect(self, screen, hat):
         "Draws a rectangle to show how long until the next shot, and the kills the player has"
@@ -122,14 +118,14 @@ class Player(Sprite):
             
             #write the kills to the screen
             screen.blit(text_surf, text_rect)
+    
+    def move_x(self, platforms, controls):
+        self.acc.x = 0 #make sure player stops with no controls
 
-    def move_x(self, pressed_keys, platforms):
-        self.acc.x = 0 #make sure player stops with no keys
-        
         #move off of key presses
-        if pressed_keys[self.keys[1]]:
+        if controls[1]:
             self.acc.x = -ACC
-        if pressed_keys[self.keys[2]]:
+        if controls[2]:
             self.acc.x = ACC
             
         self.acc.x += self.vel.x * FRIC #slows player to imitate friction
@@ -158,14 +154,14 @@ class Player(Sprite):
 
             self.vel.x = hit_plat.vel.x # make sure we move with the platforn
 
-    def move_y(self, pressed_keys, platforms):
+    def move_y(self, platforms, controls):
 
         hits = self.hitGroup(platforms)
         
         if not hits:
             self.acc.y = GRAVITY
 
-        if pressed_keys[self.keys[0]]:
+        if controls[0]:
             self.rect.move_ip(0,11)
             if self.hitGroup(platforms): 
                 self.vel.y = -JUMP

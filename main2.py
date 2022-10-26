@@ -9,6 +9,13 @@ from stick_men_func import *
 
 pygame.init()
 
+#create and init a list of joysticks
+joys = []
+numJoysticks = getNumJoys()
+initJoysticks(numJoysticks, joys)
+
+useJoys = numJoysticks > 1
+
 vect = pygame.math.Vector2 #2 for two dimensional
 
 clock = pygame.time.Clock()
@@ -47,11 +54,13 @@ while running:
         # Check for QUIT event. If QUIT, then set running to false.
         if event.type == pygame.QUIT:
             running = False
+        if useJoys: #this feels wrog here but how do i exit the game otherwise?
+            if joys[0].get_button(JOY_BTN_PLAYER) and joys[0].get_button(JOY_BTN_COIN):
+                running = False
 
     screen.fill((0,0, 0))
 
-    updateAll(bullets, hats, players, platforms, explosionPieces)
-
+    updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys)
 
     for bullet in bullets:
         
