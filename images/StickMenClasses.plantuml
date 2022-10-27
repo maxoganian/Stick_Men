@@ -1,0 +1,67 @@
+@startuml
+
+title Stick Men Classes
+
+class pygame.sprite.Sprite 
+
+class Sprite {
+    image surf
+    rectangle rect
+    float vel
+    float accel
+    move_x()
+    move_y()
+    move()
+    keepBelowVel()
+    update(width, height)
+    draw(screen)
+    hitGroup(spriteGroup)
+}
+
+
+
+class Player {
+  int id
+  int shotCounter
+  int kills
+  int keys[4]
+  move_x(pressed_keys, platforms)
+  move_y(pressed_keys, platforms)
+  drawKillsAndShotRect(screen, hat)
+  
+}
+
+class Hat {
+  update(player)
+}
+
+class Bullet {
+  int counter
+  int playerId
+  updateBullet()
+}
+
+class Platform {
+  int startX
+  int startY
+  int endX
+  int endY
+  bool isMoving
+  move_plat_y()
+  move_plat_x()
+}
+
+class ExplosionPiece {
+  updateExplos(w, h, platforms, players)
+}
+
+
+pygame.sprite.Sprite <|-- Sprite
+
+Sprite <|-- Player
+Sprite <|-- Hat
+Sprite <|-- Bullet
+Sprite <|-- Platform
+Sprite <|-- ExplosionPiece
+
+@enduml
