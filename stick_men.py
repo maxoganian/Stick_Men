@@ -110,7 +110,8 @@ class Player(Sprite):
             shot_rect = pygame.Rect(hat.rect.x, hat.rect.y - 5, SHOT_TIME - self.shotCounter, 2)
             shot_rect.center = (hat.rect.x + hat.rect.width/2, hat.rect.y - 5)
 
-            pygame.draw.rect(screen, (255,255,255), shot_rect)
+            if SHOT_TIME -self.shotCounter > 0: #in linux the rect will accept a - width but not in windows??
+                pygame.draw.rect(screen, (255,255,255), shot_rect)
 
             #use this block to write kills above the players
             text_surf = font.render(str(self.kills), True, (255,255,255))
