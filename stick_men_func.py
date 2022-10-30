@@ -37,7 +37,7 @@ def getControls(player, joys, useJoys):
         #these greater than, less than statements will evaluate true or false, 
         #note the player 1 and two buttons are used to reset their respective players
         # the last one just uses a player 1 button as this is a general control
-        controls = [j.get_axis(1) > .8, j.get_axis(0) > .8, j.get_axis(0) < .8, j.get_button(JOY_BTN_CENTER), j.get_button(JOY_BTN_PLAYER), joys[0].get_button(JOY_BTN_COIN)]
+        controls = [j.get_axis(1) > .8, j.get_axis(0) > .8, j.get_axis(0) < -.8, j.get_button(JOY_BTN_CENTER), j.get_button(JOY_BTN_PLAYER), joys[0].get_button(JOY_BTN_COIN)]
 
     return controls
 
