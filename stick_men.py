@@ -103,6 +103,8 @@ class Player(Sprite):
 
         self.controls = [None]*4 #init controls will use in move functions, this stores joystick or key controls
 
+        self.canJump = False #if we are standing on something we can jump
+
     def drawKillsAndShotRect(self, screen, hat):
         "Draws a rectangle to show how long until the next shot, and the kills the player has"
         #we pass in hat so the kills move with the hat, and the hat doesn't cover them
@@ -154,6 +156,16 @@ class Player(Sprite):
                 self.rect.right = hit_plat.rect.left  
 
             self.vel.x = hit_plat.vel.x # make sure we move with the platforn
+    def checkForJump(self, platforms):
+        "This is used so we can test jumping before the plat moves"
+        self.canJump = False
+        
+        self.rect.move_ip(0,1)
+        
+        if self.hitGroup(platforms):
+            self.canJump = True
+        
+        self.rect.move_ip(0,-1)
 
     def move_y(self, platforms, controls):
 
@@ -162,12 +174,9 @@ class Player(Sprite):
         if not hits:
             self.acc.y = GRAVITY
 
-        if controls[0]:
-            self.rect.move_ip(0,11)
-            if self.hitGroup(platforms): 
-                self.vel.y = -JUMP
-            self.rect.move_ip(0,-11)
-        
+        if controls[0] and self.canJump:
+            self.vel.y = -JUMP
+
         self.vel.y += self.acc.y
              
         x,y = self.rect.center

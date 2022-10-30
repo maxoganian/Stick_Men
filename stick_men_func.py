@@ -141,6 +141,9 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys)
             player.move_x(platforms, allControls[player.id])
 
     #move y second
+    for p in players:#if we check if we can jump before the plat moves, the player can move down less.
+        p.checkForJump(platforms)    
+
     for p in platforms:
         p.move_plat_y()
 
