@@ -14,7 +14,7 @@ JOY_BTN_COIN = 0
 JOY_BTN_PLAYER = 1
 
 def getControls(player, joys, useJoys):
-    "Get the controls the player will use"
+    "Return the controls the player will use"
     #If joysticks are not detected use keyboard keys. 
     if not useJoys:
         pressed_keys = pygame.key.get_pressed()
@@ -118,7 +118,7 @@ def makeExplosion(explosionPieces, player):
         explosionPieces.add(ExplosionPiece(player))
 
 
-def updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys):
+def updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys, WIDTH, HEIGHT):
     "Update all sprites"    
     pressed_keys = pygame.key.get_pressed()
 
@@ -163,14 +163,43 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys)
         if allControls[player.id][4]: #realive players
             player.isAlive = True
 
+    #Move everything ----These updates actually just keep the item below the top velocity and on screen
+    #theyre names need changed
     for bullet in bullets:
         bullet.move()
+        bullet.updateBullet(WIDTH, HEIGHT)
 
     for piece in explosionPieces:
         piece.move()
+        piece.updateExplos(WIDTH, HEIGHT, platforms, players)
     
+    for player in players:
+        player.update(WIDTH, HEIGHT)
+
+    for platform in platforms:
+        platform.update(WIDTH, HEIGHT)
+
     #if we press t choose a new random level, doesnt work amazing but this is a pretty temporary feature
     if allControls[0][5]: 
         makePlatforms(platforms)
 
     checkForBulletCollis(bullets, platforms)
+
+def drawAll(screen, bullets, players, hats, platforms, explosionPieces):
+    #draw all sprites
+    for bullet in bullets:
+        bullet.draw(screen)
+
+    for player in players:
+        player.draw(screen)
+        
+        hats[player.id].draw(screen)
+
+        player.drawKillsAndShotRect(screen, hats[player.id])
+
+    for platform in platforms:
+        platform.draw(screen)
+
+    for piece in explosionPieces:
+        piece.draw(screen)
+    

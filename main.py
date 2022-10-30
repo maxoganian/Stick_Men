@@ -60,32 +60,10 @@ while running:
 
     screen.fill((0,0, 0))
 
-    updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys)
+    updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys, WIDTH, HEIGHT)
 
-    for bullet in bullets:
-        
-        bullet.updateBullet(WIDTH, HEIGHT)
-        bullet.draw(screen)
+    drawAll(screen, bullets, players, hats, platforms, explosionPieces)
 
-    for player in players:
-        
-        player.update(WIDTH, HEIGHT)
-        player.draw(screen)
-        
-        hats[player.id].draw(screen)
-
-        player.drawKillsAndShotRect(screen, hats[player.id])
-
-    for platform in platforms:
-
-        platform.update(WIDTH, HEIGHT)
-        platform.draw(screen)
-
-    for piece in explosionPieces:
-
-        piece.updateExplos(WIDTH, HEIGHT, platforms, players)
-        piece.draw(screen)
-    
     # Update the display
     pygame.display.flip()
 
