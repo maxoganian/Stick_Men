@@ -126,9 +126,9 @@ class Player(Sprite):
         self.acc.x = 0 #make sure player stops with no controls
 
         #move off of key presses
-        if controls[1]:
+        if controls['left']:
             self.acc.x = -ACC
-        if controls[2]:
+        if controls['right']:
             self.acc.x = ACC
             
         self.acc.x += self.vel.x * FRIC #slows player to imitate friction
@@ -174,7 +174,7 @@ class Player(Sprite):
         if not hits:
             self.acc.y = GRAVITY
 
-        if controls[0] and self.canJump:
+        if controls['up'] and self.canJump:
             self.vel.y = -JUMP
 
         self.vel.y += self.acc.y

@@ -34,6 +34,8 @@ hats = []
 
 players.append(Player(200, 100, 0))
 players.append(Player(800, 100, 1))
+players.append(Player(400, 100, 2))
+players.append(Player(600, 100, 3))
 
 for player in players:
     hats.append(Hat(player))
@@ -48,21 +50,37 @@ bullets = pygame.sprite.Group()
 #group to hold explosionPieces
 explosionPieces = pygame.sprite.Group()
 
+state = "start"
+
 running = True
 while running:
+    #controls is a two layer array, one for player1 one for player2. These layers are 5 long, holding boolean values
+    #for jumping moving ect
+    #reset controls to false
+    allControls = [False]*4
+    for player in players:
+        allControls[player.id] = getControls(player, joys, useJoys) 
+
+
     for event in pygame.event.get():
         # Check for QUIT event. If QUIT, then set running to false.
         if event.type == pygame.QUIT:
             running = False
         if useJoys: #this feels wrog here but how do i exit the game otherwise?
-            if joys[0].get_button(JOY_BTN_PLAYER) and joys[0].get_button(JOY_BTN_COIN):
+            if allControls[0]['coin'] and allControls[0]['player']:
                 running = False
 
-    screen.fill((0,0, 0))
+    if state == "start":
+        screen.blit(pygame.image.load("images/start_background.png"), (0,0))
+        if allControls[0]['coin']: #on the coin press for now start to our deathmatch
+            state = "deathmatch"
 
-    updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys, WIDTH, HEIGHT)
+    if state == "deathmatch":
+        screen.fill((0,0,0))
 
-    drawAll(screen, bullets, players, hats, platforms, explosionPieces)
+        updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT)
+
+        drawAll(screen, bullets, players, hats, platforms, explosionPieces)
 
     # Update the display
     pygame.display.flip()

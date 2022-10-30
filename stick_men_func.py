@@ -19,16 +19,23 @@ def getControls(player, joys, useJoys):
     if not useJoys:
         pressed_keys = pygame.key.get_pressed()
         
-        #we need to set different controls for the two players, these are just player movement values
+        #we need to set different controls for the players, these are just player movement values
         if player.id == 0:
-            controls = [pressed_keys[pygame.K_UP], pressed_keys[pygame.K_LEFT], pressed_keys[pygame.K_RIGHT], pressed_keys[pygame.K_SPACE]]
-            
+            controls = {'up': pressed_keys[pygame.K_UP], 'left': pressed_keys[pygame.K_LEFT], 
+                            'right': pressed_keys[pygame.K_RIGHT], 'shoot': pressed_keys[pygame.K_SPACE]}
+        elif player.id == 1:
+            controls = {'up': pressed_keys[pygame.K_w], 'left': pressed_keys[pygame.K_a], 
+                            'right': pressed_keys[pygame.K_d], 'shoot': pressed_keys[pygame.K_e]}
+        elif player.id == 2:
+            controls = {'up': pressed_keys[pygame.K_t], 'left': pressed_keys[pygame.K_f], 
+                            'right': pressed_keys[pygame.K_h], 'shoot': pressed_keys[pygame.K_y]}
         else:
-            controls = [pressed_keys[pygame.K_w], pressed_keys[pygame.K_a], pressed_keys[pygame.K_d], pressed_keys[pygame.K_f]]
+            controls = {'up': pressed_keys[pygame.K_i], 'left': pressed_keys[pygame.K_j], 
+                            'right': pressed_keys[pygame.K_l], 'shoot': pressed_keys[pygame.K_o]}
         
-        #then after the different controls we add the two contros that are used regardess of what player.
-        controls.append(pressed_keys[pygame.K_r])
-        controls.append(pressed_keys[pygame.K_t])
+        #then after the different controls we add the two controls that are used regardless of what player.
+        controls['player'] = pressed_keys[pygame.K_p]
+        controls['coin'] = pressed_keys[pygame.K_c]
 
     else:
         #use the correct joystick for player controls
@@ -36,8 +43,9 @@ def getControls(player, joys, useJoys):
 
         #these greater than, less than statements will evaluate true or false, 
         #note the player 1 and two buttons are used to reset their respective players
-        # the last one just uses a player 1 button as this is a general control
-        controls = [j.get_axis(1) > .8, j.get_axis(0) > .8, j.get_axis(0) < -.8, j.get_button(JOY_BTN_CENTER), j.get_button(JOY_BTN_PLAYER), joys[0].get_button(JOY_BTN_COIN)]
+        controls = {'up': j.get_axis(1) > .8, 'left': j.get_axis(0) > .8, 'right': j.get_axis(0) < -.8, 
+                        'shoot': j.get_button(JOY_BTN_CENTER), 'player': j.get_button(JOY_BTN_PLAYER), 
+                        'coin': j.get_button(JOY_BTN_COIN)}
 
     return controls
 
@@ -75,7 +83,7 @@ def makePlatforms(platforms):
 
 def createBullets(player, bullets, controls):
     #ony fire after a certain amount of time has passed
-    if controls[3] and player.shotCounter > SHOT_TIME:
+    if controls['shoot'] and player.shotCounter > SHOT_TIME:
         bullets.add(Bullet(player))
         player.shotCounter = 0
     
@@ -118,12 +126,9 @@ def makeExplosion(explosionPieces, player):
         explosionPieces.add(ExplosionPiece(player))
 
 
-def updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys, WIDTH, HEIGHT):
+def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT):
     "Update all sprites"    
     pressed_keys = pygame.key.get_pressed()
-
-    #reset controls to false
-    allControls = [False]*4
     
     # have to deal with one dimension at a time b/c
     # collision detection consequences are easier that way
@@ -133,9 +138,6 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys,
         p.move_plat_x() 
     
     for player in players:
-        #controls is a two layer array, one for player1 one for player2. These layers are 5 long, holding boolean values
-        #for jumping moving ect
-        allControls[player.id] = getControls(player, joys, useJoys) #get the controls once here, then we know how to move for y too
         if player.isAlive:
             #print(controls)
             player.move_x(platforms, allControls[player.id])
@@ -160,7 +162,7 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys,
 
             createBullets(player, bullets, allControls[player.id])#creates bullets on key presss
 
-        if allControls[player.id][4]: #realive players
+        if allControls[player.id]['player']: #realive players
             player.isAlive = True
 
     #Move everything ----These updates actually just keep the item below the top velocity and on screen
@@ -179,8 +181,8 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, joys, useJoys,
     for platform in platforms:
         platform.update(WIDTH, HEIGHT)
 
-    #if we press t choose a new random level, doesnt work amazing but this is a pretty temporary feature
-    if allControls[0][5]: 
+    #if we press c choose a new random level, doesnt work amazing but this is a pretty temporary feature
+    if allControls[0]['coin']: 
         makePlatforms(platforms)
 
     checkForBulletCollis(bullets, platforms)
