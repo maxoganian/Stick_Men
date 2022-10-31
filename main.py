@@ -6,8 +6,12 @@ import time
 
 from stick_men import * #import classes and functions
 from stick_men_func import *
+from selection_func import *
 
 pygame.init()
+
+#have to init font for words
+font = pygame.font.SysFont(None, 25)
 
 #create and init a list of joysticks
 joys = []
@@ -52,6 +56,8 @@ explosionPieces = pygame.sprite.Group()
 
 state = "start"
 
+select_state = "players"
+
 running = True
 while running:
     #controls is a two layer array, one for player1 one for player2. These layers are 5 long, holding boolean values
@@ -73,14 +79,20 @@ while running:
     if state == "start":
         screen.blit(pygame.image.load("images/start_background.png"), (0,0))
         if allControls[0]['coin']: #on the coin press for now start to our deathmatch
-            state = "deathmatch"
+            state = "selection"
+
+    if state == "selection":
+        screen.blit(pygame.image.load("images/selection_background.png"), (0,0))
+
+        drawAllText(screen, font, WIDTH, HEIGHT, 7)
+
 
     if state == "deathmatch":
         screen.fill((0,0,0))
 
         updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT)
 
-        drawAll(screen, bullets, players, hats, platforms, explosionPieces)
+        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
 
     # Update the display
     pygame.display.flip()

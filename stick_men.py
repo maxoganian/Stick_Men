@@ -25,9 +25,6 @@ EXPLOSION_SIZE = float(config['DEFAULTS']['EXPLOSION_SIZE'])
 #pygame init for joysticks and font
 pygame.init()
 
-#have to init font for words
-font = pygame.font.SysFont(None, 25)
-
 class Sprite(pygame.sprite.Sprite):
     def __init__ (self, image, x, y, xVel = 0, yVel = 0, xAcc = 0, yAcc = 0):
         super(Sprite, self).__init__()
@@ -105,7 +102,7 @@ class Player(Sprite):
 
         self.canJump = False #if we are standing on something we can jump
 
-    def drawKillsAndShotRect(self, screen, hat):
+    def drawKillsAndShotRect(self, screen, hat, font):
         "Draws a rectangle to show how long until the next shot, and the kills the player has"
         #we pass in hat so the kills move with the hat, and the hat doesn't cover them
         if self.isAlive:

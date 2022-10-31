@@ -187,7 +187,7 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, W
 
     checkForBulletCollis(bullets, platforms)
 
-def drawAll(screen, bullets, players, hats, platforms, explosionPieces):
+def drawAll(screen, font, bullets, players, hats, platforms, explosionPieces):
     #draw all sprites
     for bullet in bullets:
         bullet.draw(screen)
@@ -197,11 +197,10 @@ def drawAll(screen, bullets, players, hats, platforms, explosionPieces):
         
         hats[player.id].draw(screen)
 
-        player.drawKillsAndShotRect(screen, hats[player.id])
+        player.drawKillsAndShotRect(screen, hats[player.id], font)
 
     for platform in platforms:
         platform.draw(screen)
 
     for piece in explosionPieces:
         piece.draw(screen)
-    
