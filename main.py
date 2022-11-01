@@ -28,6 +28,9 @@ clock = pygame.time.Clock()
 WIDTH = 1000
 HEIGHT = 600
 
+#number of levels
+NUM_LEVELS = float(config['DEFAULTS']['NUM_LEVELS'])
+
 # Create the screen object
 # The size is determined by the constant WIDTH and HEIGHT
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -36,17 +39,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 players = []
 hats = []
 
-players.append(Player(200, 100, 0))
-players.append(Player(800, 100, 1))
-players.append(Player(400, 100, 2))
-players.append(Player(600, 100, 3))
-
-for player in players:
-    hats.append(Hat(player))
-
 platforms = pygame.sprite.Group()
-
-makePlatforms(platforms)
 
 #group to hold bullets
 bullets = pygame.sprite.Group()
@@ -56,7 +49,17 @@ explosionPieces = pygame.sprite.Group()
 
 state = "start"
 
-select_state = "players"
+#these two are used for the select screen
+select_state = "player"
+press_count = 0
+
+#these globals will be chosen in the select menu
+numPlayers = 2
+
+modes = ["Deathmatch", "Team Deathmatch"]
+modeIndex = 0
+
+levelNum = 1
 
 running = True
 while running:
@@ -64,36 +67,92 @@ while running:
     #for jumping moving ect
     #reset controls to false
     allControls = [False]*4
-    for player in players:
-        allControls[player.id] = getControls(player, joys, useJoys) 
 
+    for i in range(numPlayers):
+        allControls[i] = getControls(i, joys, useJoys) 
 
     for event in pygame.event.get():
         # Check for QUIT event. If QUIT, then set running to false.
         if event.type == pygame.QUIT:
             running = False
-        if useJoys: #this feels wrog here but how do i exit the game otherwise?
-            if allControls[0]['coin'] and allControls[0]['player']:
-                running = False
 
     if state == "start":
         screen.blit(pygame.image.load("images/start_background.png"), (0,0))
-        if allControls[0]['coin']: #on the coin press for now start to our deathmatch
+        
+        if allControls[0]['coin']: #on the coin press move to slection
             state = "selection"
 
+        #if were at the start we can exit
+        if allControls[0]['coin'] and allControls[0]['player']: 
+            running = False
+
     if state == "selection":
+
         screen.blit(pygame.image.load("images/selection_background.png"), (0,0))
 
-        drawAllText(screen, font, WIDTH, HEIGHT, 7)
+        if select_state == "player":
+            #select between 2 or 4 players
+            if allControls[0]['up'] and numPlayers < 4:
+                numPlayers+=2
+            
+            elif allControls[0]['down'] and numPlayers > 2:
+                numPlayers-=2
 
+            if select(allControls, press_count): #on the shoot press move to slection
+                select_state = "mode"
+                press_count = 0
+        
+        if select_state == "mode":
+            
+            if allControls[0]['up'] and modeIndex < len(modes)-1:
+                modeIndex+=1
+            
+            elif allControls[0]['down'] and modeIndex > 0:
+                modeIndex-=1
 
-    if state == "deathmatch":
+            if select(allControls, press_count): #on the coin press move to slection
+                select_state = "level"
+                press_count = 0
+
+        if select_state == "level":
+            if allControls[0]['up'] and levelNum < NUM_LEVELS-1:
+                levelNum+=1
+            
+            elif allControls[0]['down'] and levelNum > 0:
+                levelNum-=1
+
+            if select(allControls, press_count): #on the coin press move to slection
+                select_state = "player"
+                state = "init"
+                press_count = 0
+
+        print(select_state)
+        press_count+=1
+
+        drawAllText(screen, font, WIDTH, HEIGHT, numPlayers, modes[modeIndex], levelNum)
+
+    if state == "init":
+        #all of this runs once to init sprites
+
+        makePlatforms(platforms, levelNum)
+
+        makePlayers(players, hats, numPlayers)
+
+        state = modes[modeIndex]
+
+    if state == "Deathmatch":
         screen.fill((0,0,0))
 
         updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT)
 
         drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
 
+        #press the low thumb joy to return to the start
+        if allControls[0]['back']:
+            state = "start"
+
+    if state == "Team Deathmatch":
+        print("team")
     # Update the display
     pygame.display.flip()
 

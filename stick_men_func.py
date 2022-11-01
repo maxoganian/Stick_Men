@@ -13,29 +13,34 @@ JOY_BTN_CENTER = 4
 JOY_BTN_COIN = 0
 JOY_BTN_PLAYER = 1
 
-def getControls(player, joys, useJoys):
+def getControls(i, joys, useJoys):
     "Return the controls the player will use"
     #If joysticks are not detected use keyboard keys. 
     if not useJoys:
         pressed_keys = pygame.key.get_pressed()
         
         #we need to set different controls for the players, these are just player movement values
-        if player.id == 0:
-            controls = {'up': pressed_keys[pygame.K_UP], 'left': pressed_keys[pygame.K_LEFT], 
-                            'right': pressed_keys[pygame.K_RIGHT], 'shoot': pressed_keys[pygame.K_SPACE]}
-        elif player.id == 1:
-            controls = {'up': pressed_keys[pygame.K_w], 'left': pressed_keys[pygame.K_a], 
-                            'right': pressed_keys[pygame.K_d], 'shoot': pressed_keys[pygame.K_e]}
-        elif player.id == 2:
-            controls = {'up': pressed_keys[pygame.K_t], 'left': pressed_keys[pygame.K_f], 
-                            'right': pressed_keys[pygame.K_h], 'shoot': pressed_keys[pygame.K_y]}
+        if i == 0:
+            controls = {'up': pressed_keys[pygame.K_UP], 'down': pressed_keys[pygame.K_DOWN], 
+                            'left': pressed_keys[pygame.K_LEFT], 'right': pressed_keys[pygame.K_RIGHT],
+                             'shoot': pressed_keys[pygame.K_SPACE]}
+        elif i == 1:
+            controls = {'up': pressed_keys[pygame.K_w], 'down': pressed_keys[pygame.K_s],
+                            'left': pressed_keys[pygame.K_a], 'right': pressed_keys[pygame.K_d], 
+                            'shoot': pressed_keys[pygame.K_e]}
+        elif i == 2:
+            controls = {'up': pressed_keys[pygame.K_t], 'down': pressed_keys[pygame.K_g],
+                            'left': pressed_keys[pygame.K_f], 'right': pressed_keys[pygame.K_h], 
+                            'shoot': pressed_keys[pygame.K_y]}
         else:
-            controls = {'up': pressed_keys[pygame.K_i], 'left': pressed_keys[pygame.K_j], 
-                            'right': pressed_keys[pygame.K_l], 'shoot': pressed_keys[pygame.K_o]}
+            controls = {'up': pressed_keys[pygame.K_i], 'down': pressed_keys[pygame.K_k],
+                            'left': pressed_keys[pygame.K_j], 'right': pressed_keys[pygame.K_l],
+                            'shoot': pressed_keys[pygame.K_o]}
         
         #then after the different controls we add the two controls that are used regardless of what player.
         controls['player'] = pressed_keys[pygame.K_p]
         controls['coin'] = pressed_keys[pygame.K_c]
+        controls['back'] = pressed_keys[pygame.K_b]
 
     else:
         #use the correct joystick for player controls
@@ -43,9 +48,10 @@ def getControls(player, joys, useJoys):
 
         #these greater than, less than statements will evaluate true or false, 
         #note the player 1 and two buttons are used to reset their respective players
-        controls = {'up': j.get_axis(1) > .8, 'left': j.get_axis(0) > .8, 'right': j.get_axis(0) < -.8, 
-                        'shoot': j.get_button(JOY_BTN_CENTER), 'player': j.get_button(JOY_BTN_PLAYER), 
-                        'coin': j.get_button(JOY_BTN_COIN)}
+        controls = {'up': j.get_axis(1) > .8, 'down': j.get_axis(0) < .8, 'left': j.get_axis(0) > .8, 
+                        'right': j.get_axis(0) < -.8, 'shoot': j.get_button(JOY_BTN_CENTER), 
+                        'player': j.get_button(JOY_BTN_PLAYER), 'coin': j.get_button(JOY_BTN_COIN), 
+                        'back': j.get_button(7)}
 
     return controls
 
@@ -61,25 +67,6 @@ def initJoysticks(numJoysticks, joys):
         j = pygame.joystick.Joystick(i)
         j.init()
         joys.append(j)
-
-def makePlatforms(platforms):
-    levelNum = random.randint(0,1)
-    #levelNum = 1
-
-    level = 'LEVEL_' + str(levelNum)
-    
-    print(level)
-    for platform in platforms:
-        platform.kill()
-    
-    numPlatforms = int(config[level]['num_platforms'])
-
-    #first add statonary platforms then moving ones
-    for i in range(numPlatforms):
-       platform = eval(config[level]['p'+str(i)])
-       platforms.add(Platform(platform))
-    
-    print("platforms: " + str(platforms))
 
 def createBullets(player, bullets, controls):
     #ony fire after a certain amount of time has passed
@@ -180,10 +167,6 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, W
 
     for platform in platforms:
         platform.update(WIDTH, HEIGHT)
-
-    #if we press c choose a new random level, doesnt work amazing but this is a pretty temporary feature
-    if allControls[0]['coin']: 
-        makePlatforms(platforms)
 
     checkForBulletCollis(bullets, platforms)
 
