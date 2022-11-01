@@ -12,6 +12,7 @@ JOY_BTN_WEST = 2
 JOY_BTN_CENTER = 4
 JOY_BTN_COIN = 0
 JOY_BTN_PLAYER = 1
+JOY_BTN_THUMB = 7
 
 def getControls(i, joys, useJoys):
     "Return the controls the player will use"
@@ -37,7 +38,7 @@ def getControls(i, joys, useJoys):
                             'left': pressed_keys[pygame.K_j], 'right': pressed_keys[pygame.K_l],
                             'shoot': pressed_keys[pygame.K_o]}
         
-        #then after the different controls we add the two controls that are used regardless of what player.
+        #then after the different controls we add the controls that are used regardless of what player.
         controls['player'] = pressed_keys[pygame.K_p]
         controls['coin'] = pressed_keys[pygame.K_c]
         controls['back'] = pressed_keys[pygame.K_b]
@@ -51,7 +52,7 @@ def getControls(i, joys, useJoys):
         controls = {'up': j.get_axis(1) > .8, 'down': j.get_axis(0) < .8, 'left': j.get_axis(0) > .8, 
                         'right': j.get_axis(0) < -.8, 'shoot': j.get_button(JOY_BTN_CENTER), 
                         'player': j.get_button(JOY_BTN_PLAYER), 'coin': j.get_button(JOY_BTN_COIN), 
-                        'back': j.get_button(7)}
+                        'back': j.get_button(JOY_BTN_THUMB)}
 
     return controls
 
