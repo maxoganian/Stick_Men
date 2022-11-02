@@ -40,6 +40,7 @@ def updateState(allControls, mode):
         return "start"
     else:
     	return mode
+    	
 def drawBlackRects(screen, state):
 	"Draws black squares over the pieces we dont want, gives the appearence of the white encircling squares"
 	yPos = 270
@@ -53,7 +54,7 @@ def drawBlackRects(screen, state):
 
 	if state != "mode":
 		pygame.draw.rect(screen, (0,0,0), mode_rect)
-		
+
 	if state != "level":
 		pygame.draw.rect(screen, (0,0,0), level_rect)
 

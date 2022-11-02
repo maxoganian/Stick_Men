@@ -13,6 +13,8 @@ JOY_BTN_CENTER = 4
 JOY_BTN_COIN = 0
 JOY_BTN_PLAYER = 1
 JOY_BTN_THUMB = 7
+def drawBackground(screen, image):
+    screen.blit(image, (0,0))
 
 def getControls(i, joys, useJoys):
     "Return the controls the player will use"
@@ -77,21 +79,38 @@ def createBullets(player, bullets, controls):
     
     player.shotCounter+=1
 
-def checkForBulletPlayer(player, players, bullets, explosionPieces):
+def checkForBulletPlayer(players, bullets, explosionPieces, isTeam):
     "If bullet hits player kill player"
     #kill player:
-    hits_player = player.hitGroup(bullets)
+    for bullet in bullets:
+        hit_players = bullet.hitGroup(players)
     
-    if hits_player:
-        hit_bullet = hits_player[0]
-        if hit_bullet.playerId != player.id: #make sure the bullet isnt hitting its own player
-            players[hit_bullet.playerId].kills += 1 #increase payer that shot the bullets kill count
-
-            hit_bullet.kill() #remove bullet
+        if hit_players:
             
-            player.isAlive = False #kill player
+            for hit_player  in hit_players: #loop through all players so when the player hit is stacked onto
+                                            #the player shooting the player being shot will stil die
+                if hit_player.isAlive: 
+                    player_shooting = players[bullet.playerId]
 
-            makeExplosion(explosionPieces, player)
+                    #this handles finding teams based off player id
+                    if isTeam:
+                        #if there is a remainder when dividing, then we are team 1, and vice versa, 
+                        #this checks they arent on the same team
+                        if hit_player.id%2 != player_shooting.id%2: 
+                            teamCheck = True
+                        else:
+                            teamCheck = False
+                    else:
+                        teamCheck = True
+
+                    if hit_player.id != player_shooting.id and teamCheck: #make sure the bullet isnt hitting its own player
+                        player_shooting.kills += 1 #increase payer that shot the bullets kill count
+                        
+                        hit_player.isAlive = False #kill player
+
+                        makeExplosion(explosionPieces, hit_player)
+
+                        bullet.kill() #remove bullet
 
 def checkForBulletCollis(bullets, platforms):
     "If bullet hits platform or bullet hits bullet, kill bullet"
@@ -138,11 +157,10 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, W
         p.move_plat_y()
 
     for player in players:
+        hats[player.id].update(player) #putting hat movement here makes the hat follow the player, b/c the player moves
+                                           #after the hat; the hat updatehas to be outside of the isAlive so the hat 
+                                           #unalive with the player
         if player.isAlive:
-            checkForBulletPlayer(player, players, bullets, explosionPieces)#pass players to increase kill counter im not a fan of this method
-
-            hats[player.id].update(player) #putting hat movement here makes the hat follow the player, b/c the player moves
-                                           #after the hat
             player.move_y(platforms, allControls[player.id])
             
             if player.vel.y < 0: #if the player is moving up we want the hat glued to their head

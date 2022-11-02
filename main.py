@@ -11,6 +11,7 @@ from selection_func import *
 pygame.init()
 
 PRESS_TIME = float(config['DEFAULTS']['PRESS_TIME'])
+
 #have to init font for words
 font = pygame.font.SysFont(None, 25)
 
@@ -153,6 +154,8 @@ while running:
     if state == "Deathmatch":
         screen.fill((0,0,0))
 
+        checkForBulletPlayer(players, bullets, explosionPieces, False)
+
         updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT)
 
         drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
@@ -160,7 +163,14 @@ while running:
         state = updateState(allControls, modes[modeIndex])
 
     if state == "Team Deathmatch":
-        screen.fill((0,0,255))
+        screen.fill((0,0,0))
+        
+        checkForBulletPlayer(players, bullets, explosionPieces, True)
+
+        updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT)
+
+        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
+
         state = updateState(allControls, modes[modeIndex])
 
     # Update the display

@@ -40,8 +40,8 @@ class Sprite(pygame.sprite.Sprite):
         self.isAlive = True
 
         #make image background transperent
-        # self.surf.convert()
-        # self.surf.set_colorkey((0, 0, 0))
+        self.surf.convert()
+        self.surf.set_colorkey((0, 0, 0))
 
     def move_x(self):
         x,y = self.rect.center
@@ -97,6 +97,8 @@ class Player(Sprite):
         self.shotCounter = 0 #used so bullets can only go so often
 
         self.kills = 0 #stores the amount of kills the player has
+
+        self.deaths = 0 #stores the amount of deaths the players has
 
         self.controls = [None]*4 #init controls will use in move functions, this stores joystick or key controls
 
