@@ -48,8 +48,8 @@ def getControls(i, joys, useJoys):
         controls['back'] = pressed_keys[pygame.K_b]
 
     else:
-        #use the correct joystick for player controls
-        j = joys[player.id]
+    #use the correct joystick for player controls
+        j = joys[i]
 
         #these greater than, less than statements will evaluate true or false, 
         #note the player 1 and two buttons are used to reset their respective players
