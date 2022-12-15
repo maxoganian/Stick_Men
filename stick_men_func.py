@@ -104,9 +104,8 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
         #none of this is the prettiest but its finals week and i want the game done
         if returnWinKillsTeam(players, amount) == 1:
             #figure out the number of players, so there is no out of bounds error
-            try:
-                players[2]
-            except:
+            
+            if len(players) <= 2:
                 winning_players = [players[0]]
             else:
                 winning_players = [players[0], players[2]]
@@ -116,9 +115,7 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
         elif returnWinKillsTeam(players, amount) == 2:
             #figure out the number of players, so there is no out of bounds error
             
-            try:
-                players[3]
-            except:
+            if len(players) <= 3:
                 winning_players = [players[1]]
             else:
                 winning_players = [players[1], players[3]]
@@ -169,7 +166,7 @@ def drawWinScreen(screen, winning_players, explosionPieces, font, gamemode):
     text_rect = text.get_rect(center=(500, 250))
     screen.blit(text, text_rect)
     
-    text = font.render("Press lower thumb button to return", True, (255,255,255))
+    text = font.render("Press Player 1 lower thumb button to return", True, (255,255,255))
     text_rect = text.get_rect(center=(500, 350))
     screen.blit(text, text_rect)
 
