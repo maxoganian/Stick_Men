@@ -52,7 +52,9 @@ explosionPieces = pygame.sprite.Group()
 state = "start"
 
 #these two are used for the select screen
-select_state = "player"
+select_states = ["player", "mode", "numToWin", "level"]
+selectIndex = 0
+
 press_count = 0
 
 #these globals will be chosen in the select menu
@@ -60,6 +62,8 @@ numPlayers = 2
 
 modes = ["Deathmatch", "Team Deathmatch"]
 modeIndex = 0
+
+numToWin = 20
 
 levelNum = 1
 
@@ -92,55 +96,26 @@ while running:
 
         screen.blit(pygame.image.load("images/selection_background.png"), (0,0))
 
-        if select_state == "player":
-            if press_count > PRESS_TIME:
-                #select between 2 or 4 players
-                if allControls[0]['up'] and numPlayers < 4:
-                    numPlayers+=1
-                    press_count = 0
-                
-                elif allControls[0]['down'] and numPlayers > 2:
-                    numPlayers-=1
-                    press_count = 0
+        if select_states[selectIndex] == "player":
+            press_count, selectIndex, numPlayers, state = updateSelectState(allControls, press_count, 
+                                                                        numPlayers, 2, 4, selectIndex, state)
 
-                if allControls[0]['shoot']: #on the shoot press move on
-                    select_state = "mode"
-                    press_count = 0
-
-        if select_state == "mode":
-            if press_count > PRESS_TIME:
-                if allControls[0]['up'] and modeIndex < len(modes)-1:
-                    modeIndex+=1
-                    press_count = 0
-                
-                elif allControls[0]['down'] and modeIndex > 0:
-                    modeIndex-=1
-                    press_count = 0
-
-                if allControls[0]['shoot']: #on the coin press move on
-                    select_state = "level"
-                    press_count = 0
-
-        if select_state == "level":
-            if press_count > PRESS_TIME:
-                if allControls[0]['up'] and levelNum < NUM_LEVELS-1:
-                    levelNum+=1
-                    press_count = 0
-
-                elif allControls[0]['down'] and levelNum > 0:
-                    levelNum-=1
-                    press_count = 0
-
-                if allControls[0]['shoot']: #on the coin press move on
-                    select_state = "player"
-                    state = "init"
-                    press_count = 0    
+        if select_states[selectIndex] == "mode":
+            press_count, selectIndex, modeIndex, state = updateSelectState(allControls, press_count, 
+                                                                        modeIndex, 0, len(modes)-1, selectIndex, state)
+        if select_states[selectIndex] == "numToWin":
+            press_count, selectIndex, numToWin, state = updateSelectState(allControls, press_count, numToWin,
+                                                                                0, 100, selectIndex, state, select_states)
+            
+        if select_states[selectIndex] == "level":
+            press_count, selectIndex, levelNum, state = updateSelectState(allControls, press_count, 
+                                                                        levelNum, 0, NUM_LEVELS-1, selectIndex, state) 
 
         press_count+=1
 
-        drawBlackRects(screen, select_state)
+        drawBlackRects(screen, select_states[selectIndex])
 
-        drawAllText(screen, font, WIDTH, HEIGHT, numPlayers, modes[modeIndex], levelNum)
+        drawAllText(screen, font, WIDTH, HEIGHT, numPlayers, modes[modeIndex], numToWin, levelNum)
 
     if state == "init":
         #all of this runs once to init sprites
@@ -160,6 +135,8 @@ while running:
 
         drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
 
+        handleWinner(players, explosionPieces, numToWin, screen, font)
+
         state = updateState(allControls, modes[modeIndex])
 
     if state == "Team Deathmatch":
@@ -172,6 +149,9 @@ while running:
         drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
 
         state = updateState(allControls, modes[modeIndex])
+
+    if state == "winner":
+        print("winner")
 
     # Update the display
     pygame.display.flip()

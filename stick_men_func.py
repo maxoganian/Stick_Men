@@ -1,4 +1,5 @@
 import pygame
+import time
 from stick_men import *
 
 #init pygame
@@ -13,6 +14,7 @@ JOY_BTN_CENTER = 4
 JOY_BTN_COIN = 0
 JOY_BTN_PLAYER = 1
 JOY_BTN_THUMB = 7
+
 def drawBackground(screen, image):
     screen.blit(image, (0,0))
 
@@ -78,6 +80,35 @@ def createBullets(player, bullets, controls):
         player.shotCounter = 0
     
     player.shotCounter+=1
+
+def handleWinner(players, explosionPieces, amount, screen, font):
+    for player in players:
+        if checkForWinKills(player, amount):
+            drawWinScreen(screen, player, explosionPieces, font)
+
+def checkForWinKills(player, amount):
+    if player.kills >= amount:
+        return True
+    else:
+        return False
+
+def drawWinScreen(screen, winning_player, explosionPieces, font):
+    screen.fill((0,0,0))
+    #print the winner players
+    
+    text = font.render("Player " + str(winning_player.id+1) + " wins", True, (255,255,255))
+    text_rect = text.get_rect(center=(500, 250))
+    screen.blit(text, text_rect)
+    
+    text = font.render("Press back to return", True, (255,255,255))
+    text_rect = text.get_rect(center=(500, 350))
+    screen.blit(text, text_rect)
+
+    makeExplosion(explosionPieces, winning_player)
+
+    for piece in explosionPieces:
+        piece.move()
+        piece.draw(screen)
 
 def checkForBulletPlayer(players, bullets, explosionPieces, isTeam):
     "If bullet hits player kill player"

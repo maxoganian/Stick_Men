@@ -90,7 +90,7 @@ class Sprite(pygame.sprite.Sprite):
 
 class Player(Sprite):
     def __init__ (self, x, y, id):
-        super(Player, self).__init__("images/stick_man_running0.png", x, y, 0, 0, 0, GRAVITY)
+        super(Player, self).__init__("images/stick_man.png", x, y, 0, 0, 0, GRAVITY)
 
         self.id = id #should be 0 through number of players
 

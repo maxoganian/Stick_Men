@@ -40,14 +40,46 @@ def updateState(allControls, mode):
         return "start"
     else:
     	return mode
-    	
+
+def updateSelectState(allControls, press_count, v1, low, high, selectIndex, state, select_state = None):
+	if select_state == None:
+		select_state = [""]*(selectIndex+1)
+
+	if press_count < PRESS_TIME:
+		return (press_count, selectIndex, v1, state)
+	
+	if select_state[selectIndex] == 'numToWin':
+		changeBy = 5
+	else:
+		changeBy = 1
+
+	if allControls[0]['up'] and v1 < high:
+		v1+=changeBy
+		press_count = 0
+	
+	elif allControls[0]['down'] and v1 > low:
+		v1-=changeBy
+		press_count = 0
+	
+	if allControls[0]['shoot']:
+		if selectIndex < 3:
+			selectIndex+=1
+		else:
+			selectIndex = 0
+			state = "init"
+
+		press_count = 0
+
+	return (press_count, selectIndex, v1, state)
+
 def drawBlackRects(screen, state):
 	"Draws black squares over the pieces we dont want, gives the appearence of the white encircling squares"
 	yPos = 270
 
-	player_rect = pygame.Rect(100, yPos, 200, 70)
-	mode_rect = pygame.Rect(400, yPos, 200, 70)
-	level_rect = pygame.Rect(700, yPos, 200, 70)
+	player_rect = pygame.Rect(60, yPos, 200, 70)
+	mode_rect = pygame.Rect(260, yPos, 200, 70)
+	num_rect = pygame.Rect(520, yPos, 200, 130)
+	level_rect = pygame.Rect(720, yPos, 200, 70)
 
 	if state != "player":
 		pygame.draw.rect(screen, (0,0,0), player_rect)
@@ -58,20 +90,28 @@ def drawBlackRects(screen, state):
 	if state != "level":
 		pygame.draw.rect(screen, (0,0,0), level_rect)
 
-def drawAllText(screen, font, WIDTH, HEIGHT, numPlayers, gameMode, levelNum):
+	if state != "numToWin":
+		pygame.draw.rect(screen, (0,0,0), num_rect)
+
+def drawAllText(screen, font, WIDTH, HEIGHT, numPlayers, gameMode, numToWin, levelNum):
 
 	#print num players
 	text = font.render(str(numPlayers), True, (255,255,255))
-	text_rect = text.get_rect(center=(200, HEIGHT/2))
+	text_rect = text.get_rect(center=(140, HEIGHT/2))
 	screen.blit(text,text_rect)
 
 	#print game mode
 	text = font.render(str(gameMode), True, (255,255,255))
-	text_rect = text.get_rect(center=(WIDTH/2, HEIGHT/2))
+	text_rect = text.get_rect(center=((WIDTH/2)-135, HEIGHT/2))
+	screen.blit(text,text_rect)
+
+	#print the amount to win by
+	text = font.render(str(numToWin), True, (255,255,255))
+	text_rect = text.get_rect(center=((WIDTH/2)+120, HEIGHT/2))
 	screen.blit(text,text_rect)
 
 	#print level num
 	text = font.render(str(levelNum), True, (255,255,255))
-	text_rect = text.get_rect(center=(WIDTH-200, HEIGHT/2))
+	text_rect = text.get_rect(center=(WIDTH-150, HEIGHT/2))
 	screen.blit(text,text_rect)
 	
