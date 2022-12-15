@@ -20,7 +20,7 @@ joys = []
 numJoysticks = getNumJoys()
 initJoysticks(numJoysticks, joys)
 
-useJoys = numJoysticks > 1
+useJoys = numJoysticks > 3
 
 vect = pygame.math.Vector2 #2 for two dimensional
 
