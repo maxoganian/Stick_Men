@@ -34,12 +34,6 @@ def makePlatforms(platforms, levelNum):
     
     print("platforms: " + str(platforms))
 
-def updateState(allControls, mode):
-	#press the low thumb joy to return to the start
-    if allControls[0]['back']:
-        return "start"
-    else:
-    	return mode
 
 def updateSelectState(allControls, press_count, v1, low, high, selectIndex, state, select_state = None):
 	if select_state == None:

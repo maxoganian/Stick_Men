@@ -81,14 +81,26 @@ def createBullets(player, bullets, controls):
     
     player.shotCounter+=1
 
-def handleWinner(players, explosionPieces, amount, screen, font, gamemode):
-    if gamemode == "Deathmatch": 
+def updateState(allControls, state):
+    #press the low thumb joy to return to the start
+    oldState = state
+
+    if allControls[0]['back']:
+        return "start"
+    else:
+        return oldState
+
+def handleWinner(players, explosionPieces, amount, screen, font, state, allControls):
+    winning_players = []
+
+    if state == "Deathmatch": 
         for player in players:
             if checkForWinKills(player, amount):
                 winning_players = [player]
-                drawWinScreen(screen, player.id, winning_players, explosionPieces, font, gamemode)
-    
-    elif gamemode == "Team Deathmatch":
+                
+                state = "winner"
+
+    elif state == "Team Deathmatch":
         #none of this is the prettiest but its finals week and i want the game done
         if returnWinKillsTeam(players, amount) == 1:
             #figure out the number of players, so there is no out of bounds error
@@ -98,8 +110,8 @@ def handleWinner(players, explosionPieces, amount, screen, font, gamemode):
                 winning_players = [players[0]]
             else:
                 winning_players = [players[0], players[2]]
-
-            drawWinScreen(screen, 1, winning_players, explosionPieces, font, gamemode)
+            
+            state = "winner"
 
         elif returnWinKillsTeam(players, amount) == 2:
             #figure out the number of players, so there is no out of bounds error
@@ -110,7 +122,9 @@ def handleWinner(players, explosionPieces, amount, screen, font, gamemode):
             else:
                 winning_players = [players[1], players[3]]
 
-            drawWinScreen(screen, 2, winning_players, explosionPieces, font, gamemode)
+            state = "winner"
+    
+    return state, winning_players
 
 def checkForWinKills(player, amount):
     if player.kills >= amount:
@@ -135,22 +149,9 @@ def returnWinKillsTeam(players, amount):
     else:
         return 0
 
-def drawWinScreen(screen, winning_id, winning_players, explosionPieces, font, gamemode):
+def drawWinScreen(screen, winning_players, explosionPieces, font, gamemode):
     screen.fill((0,0,0))
     #print the winner players
-    
-    if gamemode == "Deathmatch":
-        text = font.render("Player " + str(winning_id+1) + " wins", True, (255,255,255))
-    elif gamemode == "Team Deathmatch":
-        text = font.render("Team " + str(winning_id) + " wins", True, (255,255,255))
-    
-    text_rect = text.get_rect(center=(500, 250))
-    screen.blit(text, text_rect)
-    
-    text = font.render("Press lower thumb button to return", True, (255,255,255))
-    text_rect = text.get_rect(center=(500, 350))
-    screen.blit(text, text_rect)
-
     for player in winning_players:
         makeExplosion(explosionPieces, player)
 
@@ -158,6 +159,19 @@ def drawWinScreen(screen, winning_id, winning_players, explosionPieces, font, ga
         piece.move()
         piece.draw(screen)
 
+
+    if gamemode == "Deathmatch":
+        text = font.render("Player " + str(winning_players[0].id +1) + " wins", True, (255,255,255))
+    elif gamemode == "Team Deathmatch":
+        text = font.render("Team " + str((winning_players[0].id%2) +1) + " wins", True, (255,255,255))
+    
+    text_rect = text.get_rect(center=(500, 250))
+    screen.blit(text, text_rect)
+    
+    text = font.render("Press lower thumb button to return", True, (255,255,255))
+    text_rect = text.get_rect(center=(500, 350))
+    screen.blit(text, text_rect)
+    
 def checkForBulletPlayer(players, bullets, explosionPieces, gamemode):
     "If bullet hits player kill player"
     isTeam = gamemode == "Team Deathmatch"

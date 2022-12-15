@@ -51,6 +51,9 @@ explosionPieces = pygame.sprite.Group()
 
 state = "start"
 
+#used to store the winnign players
+winning_players = []
+
 #these two are used for the select screen
 select_states = ["player", "mode", "numToWin", "level"]
 selectIndex = 0
@@ -135,12 +138,17 @@ while running:
 
         drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
 
-        handleWinner(players, explosionPieces, numToWin, screen, font, state)
-
         state = updateState(allControls, modes[modeIndex])
 
+        tempState, winning_players = handleWinner(players, explosionPieces, numToWin, screen, font, 
+                                                    state, allControls)
+        if tempState == "winner":
+            state = "winner"
+
     if state == "winner":
-        print("winner")
+        state = updateState(allControls, state)
+
+        drawWinScreen(screen, winning_players, explosionPieces, font, modes[modeIndex])
 
     # Update the display
     pygame.display.flip()
