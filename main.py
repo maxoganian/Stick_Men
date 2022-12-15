@@ -85,6 +85,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    #always be able to exit
+    if allControls[0]['coin'] and allControls[0]['player']: 
+        running = False
+    
     if state == "start":
         screen.blit(pygame.image.load("images/start_background.png"), (0,0))
         
@@ -94,10 +98,6 @@ while running:
 
         if allControls[0]['coin']: #on the coin press move to slection
             state = "selection"
-
-        #if were at the start we can exit
-        if allControls[0]['coin'] and allControls[0]['player']: 
-            running = False
 
     if state == "selection":
 
