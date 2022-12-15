@@ -126,27 +126,16 @@ while running:
 
         state = modes[modeIndex]
 
-    if state == "Deathmatch":
+    if state == "Deathmatch" or state == "Team Deathmatch":
         screen.fill((0,0,0))
 
-        checkForBulletPlayer(players, bullets, explosionPieces, False)
+        checkForBulletPlayer(players, bullets, explosionPieces, state)
 
         updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT)
 
         drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
 
-        handleWinner(players, explosionPieces, numToWin, screen, font)
-
-        state = updateState(allControls, modes[modeIndex])
-
-    if state == "Team Deathmatch":
-        screen.fill((0,0,0))
-        
-        checkForBulletPlayer(players, bullets, explosionPieces, True)
-
-        updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT)
-
-        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
+        handleWinner(players, explosionPieces, numToWin, screen, font, state)
 
         state = updateState(allControls, modes[modeIndex])
 
