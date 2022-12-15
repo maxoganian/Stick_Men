@@ -115,6 +115,7 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
 
         elif returnWinKillsTeam(players, amount) == 2:
             #figure out the number of players, so there is no out of bounds error
+            
             try:
                 players[3]
             except:
@@ -171,7 +172,7 @@ def drawWinScreen(screen, winning_players, explosionPieces, font, gamemode):
     text = font.render("Press lower thumb button to return", True, (255,255,255))
     text_rect = text.get_rect(center=(500, 350))
     screen.blit(text, text_rect)
-    
+
 def checkForBulletPlayer(players, bullets, explosionPieces, gamemode):
     "If bullet hits player kill player"
     isTeam = gamemode == "Team Deathmatch"

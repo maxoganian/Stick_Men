@@ -88,6 +88,10 @@ while running:
     if state == "start":
         screen.blit(pygame.image.load("images/start_background.png"), (0,0))
         
+        #remove the explosions left over from the win screen
+        for piece in explosionPieces:
+            piece.kill()
+
         if allControls[0]['coin']: #on the coin press move to slection
             state = "selection"
 
@@ -108,7 +112,7 @@ while running:
                                                                         modeIndex, 0, len(modes)-1, selectIndex, state)
         if select_states[selectIndex] == "numToWin":
             press_count, selectIndex, numToWin, state = updateSelectState(allControls, press_count, numToWin,
-                                                                                0, 100, selectIndex, state, select_states)
+                                                                                5, 100, selectIndex, state, select_states)
             
         if select_states[selectIndex] == "level":
             press_count, selectIndex, levelNum, state = updateSelectState(allControls, press_count, 
