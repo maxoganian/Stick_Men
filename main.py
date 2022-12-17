@@ -49,6 +49,9 @@ bullets = pygame.sprite.Group()
 #group to hold explosionPieces
 explosionPieces = pygame.sprite.Group()
 
+#set mouse to transparent
+pygame.mouse.set_cursor((8,8),(0,0),(0,0,0,0,0,0,0,0),(0,0,0,0,0,0,0,0))
+
 state = "start"
 
 #used to store the winnign players
@@ -72,6 +75,7 @@ levelNum = 1
 
 running = True
 while running:
+
     #controls is a two layer array, one for player1 one for player2. These layers are 5 long, holding boolean values
     #for jumping moving ect
     #reset controls to false

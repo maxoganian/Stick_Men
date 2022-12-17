@@ -257,6 +257,8 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, W
         if player.isAlive:
             player.move_y(platforms, allControls[player.id])
             
+            player.animate(allControls)# update player frame
+
             if player.vel.y < 0: #if the player is moving up we want the hat glued to their head
                 hats[player.id].update(player)
 

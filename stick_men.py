@@ -104,6 +104,13 @@ class Player(Sprite):
 
         self.canJump = False #if we are standing on something we can jump
 
+        self.frames = []
+        self.frameCounter = 0
+        self.frameIndex = 0
+
+        for i in range(10):
+            self.frames.append(pygame.image.load("images/Stick_Man/frame" + str(i) + ".png"))
+
     def drawKillsAndShotRect(self, screen, hat, font):
         "Draws a rectangle to show how long until the next shot, and the kills the player has"
         #we pass in hat so the kills move with the hat, and the hat doesn't cover them
@@ -196,6 +203,26 @@ class Player(Sprite):
                 self.rect.top = hit_plat.rect.bottom
 
             self.vel.y = hit_plat.vel.y
+
+    def animate(self, allControls):
+            
+            if allControls[self.id]['right'] or allControls[self.id]['left']:
+                if self.frameCounter > 2:
+                    self.frameIndex+=1
+                    self.frameCounter = 0
+                
+                self.frameCounter+=1
+
+                if self.frameIndex > 8:
+                    self.frameIndex = 0
+
+            if int(self.vel.x) == 0:
+                self.frameIndex = 0
+
+            if self.vel.x < 0:
+                self.surf = pygame.transform.flip(self.frames[self.frameIndex], True, False)
+            else:
+                self.surf = self.frames[self.frameIndex]
 
 class Hat(Sprite):
     def __init__ (self, player):
