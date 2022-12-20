@@ -227,10 +227,20 @@ class Player(Sprite):
 class Hat(Sprite):
     def __init__ (self, player):
         x,y = player.rect.midtop
+
+        self.img = pygame.image.load("images/hat" + str(player.id+1) + ".png")
+
         super(Hat, self).__init__("images/hat" + str(player.id+1) + ".png", x, y, player.vel.x, player.vel.y, player.acc.x, player.acc.y) 
 
     def update(self,player):
         self.rect.center = (player.rect.midtop) #keeps hat on player
+        
+        #keep hat arrow pointed the right direction
+        if player.vel.x < 0:
+            self.surf = pygame.transform.flip(self.img, True, False)
+        else:
+            self.surf = self.img
+
         self.rect.y += 3 #move down the hat
         self.isAlive = player.isAlive #so hat vanishes when the player does
 
