@@ -95,7 +95,7 @@ def updateState(allControls, state):
     else:
         return oldState
 
-def handleWinner(players, explosionPieces, amount, screen, font, state, allControls):
+def handleWinner(players, explosionPieces, amount, screen, font, state, allControls, sounds, hasNotPlayed = True):
     winning_players = []
 
     if state == "Deathmatch": 
@@ -103,6 +103,8 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
             if checkForWinKills(player, amount):
                 winning_players = [player]
                 
+                playSound(sounds['win' + str(player.id)])
+
                 state = "winner"
 
     elif state == "Team Deathmatch":
@@ -115,6 +117,8 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
             else:
                 winning_players = [players[0], players[2]]
             
+            playSound(sounds['win0'])
+
             state = "winner"
 
         elif returnWinKillsTeam(players, amount) == 2:
@@ -125,7 +129,17 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
             else:
                 winning_players = [players[1], players[3]]
 
+            playSound(sounds['win1'])
+            
             state = "winner"
+
+    # if hasNotPlayed and len(winning_players) > 0:
+    #     if winning_players[0] == players[0]:
+            
+    #     else:
+    #         playSound(sounds['blue_win'])
+
+    #     hasNotPlayed = False
     
     return state, winning_players
 
@@ -272,6 +286,10 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, s
             createBullets(player, bullets, allControls[player.id], sounds)#creates bullets on key presss
 
         if allControls[player.id]['player']: #realive players
+            
+            if not player.isAlive:
+                playSound(sounds['im_back'])
+            
             player.isAlive = True
 
     #Move everything ----These updates actually just keep the item below the top velocity and on screen

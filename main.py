@@ -74,7 +74,10 @@ numToWin = 20
 levelNum = 1
 
 #store sounds, so all sounds can be easily passed
-sounds  = {'death': pygame.mixer.Sound("sounds/Death.wav"), 'woosh': pygame.mixer.Sound("sounds/woosh.wav")}
+sounds  = {'death': pygame.mixer.Sound("sounds/Death.wav"), 'woosh': pygame.mixer.Sound("sounds/woosh.wav"), 
+            'im_back': pygame.mixer.Sound("sounds/im_back.wav"), 'win0': pygame.mixer.Sound("sounds/win0.wav"),
+            'win1': pygame.mixer.Sound("sounds/win1.wav"), 'win2': pygame.mixer.Sound("sounds/win2.wav"), 
+            'win3': pygame.mixer.Sound("sounds/win3.wav")}
 
 running = True
 while running:
@@ -152,7 +155,7 @@ while running:
         state = updateState(allControls, modes[modeIndex])
 
         tempState, winning_players = handleWinner(players, explosionPieces, numToWin, screen, font, 
-                                                    state, allControls)
+                                                    state, allControls, sounds)
         if tempState == "winner":
             state = "winner"
 
