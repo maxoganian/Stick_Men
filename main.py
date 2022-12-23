@@ -73,6 +73,9 @@ numToWin = 20
 
 levelNum = 1
 
+#store sounds, so all sounds can be easily passed
+sounds  = {'death': pygame.mixer.Sound("sounds/Death.wav"), 'woosh': pygame.mixer.Sound("sounds/woosh.wav")}
+
 running = True
 while running:
 
@@ -140,9 +143,9 @@ while running:
     if state == "Deathmatch" or state == "Team Deathmatch":
         screen.fill((0,0,0))
 
-        checkForBulletPlayer(players, bullets, explosionPieces, state)
+        checkForBulletPlayer(players, bullets, explosionPieces, state, sounds)
 
-        updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT)
+        updateAll(bullets, hats, players, platforms, explosionPieces, allControls, sounds, WIDTH, HEIGHT)
 
         drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
 

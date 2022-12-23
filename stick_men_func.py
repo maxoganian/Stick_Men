@@ -73,13 +73,18 @@ def initJoysticks(numJoysticks, joys):
         j.init()
         joys.append(j)
 
-def createBullets(player, bullets, controls):
+def createBullets(player, bullets, controls, sounds):
     #ony fire after a certain amount of time has passed
     if controls['shoot'] and player.shotCounter > SHOT_TIME:
+        
+        playSound(sounds['woosh'])
         bullets.add(Bullet(player))
         player.shotCounter = 0
     
     player.shotCounter+=1
+
+def playSound(sound):
+    pygame.mixer.Sound.play(sound)
 
 def updateState(allControls, state):
     #press the low thumb joy to return to the start
@@ -170,7 +175,7 @@ def drawWinScreen(screen, winning_players, explosionPieces, font, gamemode):
     text_rect = text.get_rect(center=(500, 350))
     screen.blit(text, text_rect)
 
-def checkForBulletPlayer(players, bullets, explosionPieces, gamemode):
+def checkForBulletPlayer(players, bullets, explosionPieces, gamemode, sounds):
     "If bullet hits player kill player"
     isTeam = gamemode == "Team Deathmatch"
 
@@ -202,6 +207,8 @@ def checkForBulletPlayer(players, bullets, explosionPieces, gamemode):
                         
                         hit_player.isAlive = False #kill player
 
+                        playSound(sounds['death'])
+
                         makeExplosion(explosionPieces, hit_player)
 
                         bullet.kill() #remove bullet
@@ -227,7 +234,7 @@ def makeExplosion(explosionPieces, player):
         explosionPieces.add(ExplosionPiece(player))
 
 
-def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, WIDTH, HEIGHT):
+def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, sounds, WIDTH, HEIGHT):
     "Update all sprites"    
     pressed_keys = pygame.key.get_pressed()
     
@@ -262,7 +269,7 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, W
             if player.vel.y < 0: #if the player is moving up we want the hat glued to their head
                 hats[player.id].update(player)
 
-            createBullets(player, bullets, allControls[player.id])#creates bullets on key presss
+            createBullets(player, bullets, allControls[player.id], sounds)#creates bullets on key presss
 
         if allControls[player.id]['player']: #realive players
             player.isAlive = True
