@@ -6,4 +6,4 @@ running = True
 
 while running:
 
-	pygame.mixer.Sound.play(pygame.mixer.Sound("sounds/Death.wav"))
+	pygame.mixer.Sound.play(pygame.mixer.Sound("sounds/win0.wav"))
