@@ -74,10 +74,10 @@ numToWin = 20
 levelNum = 1
 
 #store sounds, so all sounds can be easily passed
-sounds  = {'death': pygame.mixer.Sound("sounds/Death.mp3"), 'woosh': pygame.mixer.Sound("sounds/woosh.mp3"), 
-            'im_back': pygame.mixer.Sound("sounds/im_back.mp3"), 'win0': pygame.mixer.Sound("sounds/win0.mp3"),
-            'win1': pygame.mixer.Sound("sounds/win1.mp3"), 'win2': pygame.mixer.Sound("sounds/win2.mp3"), 
-            'win3': pygame.mixer.Sound("sounds/win3.mp3")}
+sounds  = {'death': pygame.mixer.Sound("sounds/Death.wav"), 'woosh': pygame.mixer.Sound("sounds/woosh.wav"), 
+            'im_back': pygame.mixer.Sound("sounds/im_back.wav"), 'win0': pygame.mixer.Sound("sounds/win0.wav"),
+            'win1': pygame.mixer.Sound("sounds/win1.wav"), 'win2': pygame.mixer.Sound("sounds/win2.wav"), 
+            'win3': pygame.mixer.Sound("sounds/win3.wav")}
 
 running = True
 while running:
