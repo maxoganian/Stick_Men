@@ -79,8 +79,10 @@ sounds  = {'death': pygame.mixer.Sound("sounds/Death.wav"), 'woosh': pygame.mixe
             'win1': pygame.mixer.Sound("sounds/win1.wav"), 'win2': pygame.mixer.Sound("sounds/win2.wav"), 
             'win3': pygame.mixer.Sound("sounds/win3.wav")}
 
+sounds['woosh'].set_volume(10.0)
+
 for sound in sounds.values():
-    sound.set_volume(10.0)
+    sound.set_volume(4.0)
 
 running = True
 while running:
