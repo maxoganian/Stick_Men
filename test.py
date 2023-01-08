@@ -6,7 +6,7 @@ running = True
 
 sound = pygame.mixer.Sound("sounds/im_back.wav")
 
-sound.set_volume(.2)
+sound.set_volume(2)
 
 while running:
 
