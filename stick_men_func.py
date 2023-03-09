@@ -95,7 +95,7 @@ def updateState(allControls, state):
     else:
         return oldState
 
-def handleWinner(players, explosionPieces, amount, screen, font, state, allControls, sounds, hasNotPlayed = True):
+def handleWinner(players, explosionPieces, amount, screen, font, state, allControls, sounds, hasNotPlayed = True, time = 0):
     winning_players = []
 
     if state == "Deathmatch": 
@@ -141,6 +141,9 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
                 playSound(sounds['win' + str(player.id)])
 
                 state = "winner"
+    elif state == "Timed KDR":
+        amount - 1/30
+        print(amount)
 
     # if hasNotPlayed and len(winning_players) > 0:
     #     if winning_players[0] == players[0]:

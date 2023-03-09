@@ -66,7 +66,7 @@ press_count = 0
 #these globals will be chosen in the select menu
 numPlayers = 2
 
-modes = ["Deathmatch", "Team Deathmatch", "KDR"]
+modes = ["Deathmatch", "Team Deathmatch", "KDR", "Timed KDR"]
 modeIndex = 0
 
 numToWin = 20
@@ -149,7 +149,7 @@ while running:
 
         state = modes[modeIndex]
 
-    if state == "Deathmatch" or state == "Team Deathmatch" or state == "KDR":
+    if state == "Deathmatch" or state == "Team Deathmatch" or state == "KDR" or state == "Timed KDR":
         screen.fill((0,0,0))
 
         checkForBulletPlayer(players, bullets, explosionPieces, state, sounds)
