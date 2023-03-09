@@ -100,6 +100,8 @@ class Player(Sprite):
 
         self.deaths = 0 #stores the amount of deaths the players has
 
+        self.kdr = 0
+
         self.controls = [None]*4 #init controls will use in move functions, this stores joystick or key controls
 
         self.canJump = False #if we are standing on something we can jump
@@ -111,7 +113,7 @@ class Player(Sprite):
         for i in range(10):
             self.frames.append(pygame.image.load("images/Stick_Man/frame" + str(i) + ".png"))
 
-    def drawKillsAndShotRect(self, screen, hat, font):
+    def drawKillsAndShotRect(self, state, screen, hat, font):
         "Draws a rectangle to show how long until the next shot, and the kills the player has"
         #we pass in hat so the kills move with the hat, and the hat doesn't cover them
         if self.isAlive:
@@ -122,7 +124,12 @@ class Player(Sprite):
                 pygame.draw.rect(screen, (255,255,255), shot_rect)
 
             #use this block to write kills above the players
-            text_surf = font.render(str(self.kills), True, (255,255,255))
+            displayVal = self.kills
+            
+            if state == "KDR":
+                displayVal  = round(self.kdr, 2)
+
+            text_surf = font.render(str(displayVal), True, (255,255,255))
             text_rect = text_surf.get_rect(center=((hat.rect.x + (hat.rect.width/2)), hat.rect.y-15))
             
             #write the kills to the screen
@@ -203,6 +210,23 @@ class Player(Sprite):
                 self.rect.top = hit_plat.rect.bottom
 
             self.vel.y = hit_plat.vel.y
+    
+    def update(self, width, height):
+        if self.rect.top > height:
+            self.rect.bottom = 0
+        if self.rect.bottom < 0:
+            self.rect.top = height
+        if self.rect.left > width:
+            self.rect.right = 0
+        if self.rect.right < 0:
+            self.rect.left = width
+        
+        self.keepBelowVel()
+
+        self.kdr = self.kills
+        
+        if self.deaths != 0:
+            self.kdr = self.kills/self.deaths
 
     def animate(self, allControls):
             

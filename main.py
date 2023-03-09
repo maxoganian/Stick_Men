@@ -66,7 +66,7 @@ press_count = 0
 #these globals will be chosen in the select menu
 numPlayers = 2
 
-modes = ["Deathmatch", "Team Deathmatch"]
+modes = ["Deathmatch", "Team Deathmatch", "KDR"]
 modeIndex = 0
 
 numToWin = 20
@@ -127,7 +127,8 @@ while running:
                                                                         modeIndex, 0, len(modes)-1, selectIndex, state)
         if select_states[selectIndex] == "numToWin":
             press_count, selectIndex, numToWin, state = updateSelectState(allControls, press_count, numToWin,
-                                                                                5, 100, selectIndex, state, select_states)
+                                                                                5, 100, selectIndex, state, select_states,
+                                                                                modes[modeIndex])
             
         if select_states[selectIndex] == "level":
             press_count, selectIndex, levelNum, state = updateSelectState(allControls, press_count, 
@@ -148,14 +149,14 @@ while running:
 
         state = modes[modeIndex]
 
-    if state == "Deathmatch" or state == "Team Deathmatch":
+    if state == "Deathmatch" or state == "Team Deathmatch" or state == "KDR":
         screen.fill((0,0,0))
 
         checkForBulletPlayer(players, bullets, explosionPieces, state, sounds)
 
         updateAll(bullets, hats, players, platforms, explosionPieces, allControls, sounds, WIDTH, HEIGHT)
 
-        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces)
+        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state)
 
         state = updateState(allControls, modes[modeIndex])
 

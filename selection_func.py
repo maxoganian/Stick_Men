@@ -35,15 +35,22 @@ def makePlatforms(platforms, levelNum):
     print("platforms: " + str(platforms))
 
 
-def updateSelectState(allControls, press_count, v1, low, high, selectIndex, state, select_state = None):
+def updateSelectState(allControls, press_count, v1, low, high, selectIndex, state, select_state = None, mode = None):
 	if select_state == None:
 		select_state = [""]*(selectIndex+1)
 
 	if press_count < PRESS_TIME:
 		return (press_count, selectIndex, v1, state)
 	
-	if select_state[selectIndex] == 'numToWin':
+	if mode == "KDR":
+		low = 1
+		high = 19
+		if v1 == 20:
+			v1 = 5
+
+	if select_state[selectIndex] == 'numToWin' and mode != "KDR":
 		changeBy = 5
+	
 	else:
 		changeBy = 1
 

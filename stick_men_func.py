@@ -132,6 +132,15 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
             playSound(sounds['win1'])
             
             state = "winner"
+    
+    elif state == "KDR":
+        for player in players:
+            if player.kdr >= amount:
+                winning_players = [player]
+
+                playSound(sounds['win' + str(player.id)])
+
+                state = "winner"
 
     # if hasNotPlayed and len(winning_players) > 0:
     #     if winning_players[0] == players[0]:
@@ -177,7 +186,7 @@ def drawWinScreen(screen, winning_players, explosionPieces, font, gamemode):
         piece.draw(screen)
 
 
-    if gamemode == "Deathmatch":
+    if gamemode == "Deathmatch" or gamemode == "KDR":
         text = font.render("Player " + str(winning_players[0].id +1) + " wins", True, (255,255,255))
     elif gamemode == "Team Deathmatch":
         text = font.render("Team " + str((winning_players[0].id%2) +1) + " wins", True, (255,255,255))
@@ -220,6 +229,7 @@ def checkForBulletPlayer(players, bullets, explosionPieces, gamemode, sounds):
                         player_shooting.kills += 1 #increase payer that shot the bullets kill count
                         
                         hit_player.isAlive = False #kill player
+                        hit_player.deaths += 1
 
                         playSound(sounds['death'])
 
@@ -310,7 +320,7 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, s
 
     checkForBulletCollis(bullets, platforms)
 
-def drawAll(screen, font, bullets, players, hats, platforms, explosionPieces):
+def drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state):
     #draw all sprites
     for bullet in bullets:
         bullet.draw(screen)
@@ -320,7 +330,7 @@ def drawAll(screen, font, bullets, players, hats, platforms, explosionPieces):
         
         hats[player.id].draw(screen)
 
-        player.drawKillsAndShotRect(screen, hats[player.id], font)
+        player.drawKillsAndShotRect(state, screen, hats[player.id], font)
 
     for platform in platforms:
         platform.draw(screen)
