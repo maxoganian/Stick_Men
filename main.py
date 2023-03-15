@@ -156,7 +156,7 @@ while running:
 
         updateAll(bullets, hats, players, platforms, explosionPieces, allControls, sounds, WIDTH, HEIGHT)
 
-        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state)
+        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state, numToWin)
 
         state = updateState(allControls, modes[modeIndex])
 

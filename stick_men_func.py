@@ -225,6 +225,34 @@ def drawWinScreen(screen, winning_players, explosionPieces, font, gamemode):
     text_rect = text.get_rect(center=(500, 350))
     screen.blit(text, text_rect)
 
+def printTopVals(state, numToWin, players, screen, font):
+    "Prints out the values at the top of the in game screen"
+ 
+    if state == "Team Deathmatch":
+        tempText = ""
+        team1 = 0
+        team2 = 0
+
+        for player in players:
+            if player.id%2 == 0:
+                team1 += player.kills
+            else:
+                team2 += player.kills        
+
+        text = font.render("Team 1 has " + str(team1) + " kills     |      Team 2 has " + str(team2) + " kills", 
+                                True, (255,255,255))
+    
+        text_rect = text.get_rect(center=(500, 20))
+        screen.blit(text, text_rect)
+
+    if state != "Timed KDR":
+        text = font.render("Needs " + str(numToWin) + " to win", True, (255, 255, 255))
+    else:
+        text = font.render(str(round(numToWin, 3)) + " minutes left", True, (255, 255, 255))
+    
+    text_rect = text.get_rect(center=(500, 40))
+    screen.blit(text, text_rect)
+
 def checkForBulletPlayer(players, bullets, explosionPieces, gamemode, sounds):
     "If bullet hits player kill player"
     isTeam = gamemode == "Team Deathmatch"
@@ -347,7 +375,10 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, s
 
     checkForBulletCollis(bullets, platforms)
 
-def drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state):
+def drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state, numToWin):
+    
+    printTopVals(state, numToWin, players, screen, font)
+    
     #draw all sprites
     for bullet in bullets:
         bullet.draw(screen)
