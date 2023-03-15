@@ -126,7 +126,7 @@ class Player(Sprite):
             #use this block to write kills above the players
             displayVal = self.kills
             
-            if state == "KDR":
+            if state == "KDR" or state == "Timed KDR":
                 displayVal  = round(self.kdr, 2)
 
             text_surf = font.render(str(displayVal), True, (255,255,255))

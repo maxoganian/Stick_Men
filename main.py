@@ -160,7 +160,7 @@ while running:
 
         state = updateState(allControls, modes[modeIndex])
 
-        tempState, winning_players = handleWinner(players, explosionPieces, numToWin, screen, font, 
+        tempState, winning_players, numToWin  = handleWinner(players, explosionPieces, numToWin, screen, font, 
                                                     state, allControls, sounds)
         if tempState == "winner":
             state = "winner"

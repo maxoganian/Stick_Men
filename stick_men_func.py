@@ -141,19 +141,30 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
                 playSound(sounds['win' + str(player.id)])
 
                 state = "winner"
-    elif state == "Timed KDR":
-        amount - 1/30
-        print(amount)
-
-    # if hasNotPlayed and len(winning_players) > 0:
-    #     if winning_players[0] == players[0]:
-            
-    #     else:
-    #         playSound(sounds['blue_win'])
-
-    #     hasNotPlayed = False
     
-    return state, winning_players
+    elif state == "Timed KDR":
+        
+        #since we run at 30 fps this counts in minutes
+        amount -= (1/30)/60
+        #amount -= (1/30)
+        
+        if amount <= 0:
+            max = 0
+            for player in players:
+                if player.kdr >= max:
+                    max = player.kdr
+                    winning_players.append(player)
+
+            if len(winning_players) == 1: #only play a sound if there is one winner
+                playSound(sounds['win' + str(winning_players[0].id)])
+            
+            amount = 5
+
+            state = "winner"
+
+        #print(amount)
+
+    return state, winning_players, amount
 
 def checkForWinKills(player, amount):
     if player.kills >= amount:
@@ -194,6 +205,19 @@ def drawWinScreen(screen, winning_players, explosionPieces, font, gamemode):
     elif gamemode == "Team Deathmatch":
         text = font.render("Team " + str((winning_players[0].id%2) +1) + " wins", True, (255,255,255))
     
+    elif gamemode == "Timed KDR":
+        if len(winning_players) == 1:
+            text = font.render("Player " + str(winning_players[0].id +1) + " wins", True, (255,255,255))
+        else:
+            
+            #if kdrs are exactly equal this is used to show a tie 
+            playerNums = ""
+
+            for player in winning_players:
+                playerNums += str(player.id +1) + ", "
+            
+            text = font.render("Players " + playerNums + "tie", True, (255,255,255))
+
     text_rect = text.get_rect(center=(500, 250))
     screen.blit(text, text_rect)
     
