@@ -73,6 +73,8 @@ numToWin = 20
 
 levelNum = 1
 
+kdrTimer = 0 #only used in timed kdr mode - has to be a better way to do this
+
 #store sounds, so all sounds can be easily passed
 sounds  = {'death': pygame.mixer.Sound("sounds/Death.wav"), 'woosh': pygame.mixer.Sound("sounds/woosh.wav"), 
             'im_back': pygame.mixer.Sound("sounds/im_back.wav"), 'win0': pygame.mixer.Sound("sounds/win0.wav"),
@@ -143,6 +145,9 @@ while running:
     if state == "init":
         #all of this runs once to init sprites
 
+        if modes[modeIndex] == "Timed KDR":
+            kdrTimer = numToWin
+
         makePlatforms(platforms, levelNum)
 
         makePlayers(players, hats, numPlayers)
@@ -156,11 +161,11 @@ while running:
 
         updateAll(bullets, hats, players, platforms, explosionPieces, allControls, sounds, WIDTH, HEIGHT)
 
-        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state, numToWin)
+        drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state, numToWin, kdrTimer)
 
         state = updateState(allControls, modes[modeIndex])
 
-        tempState, winning_players, numToWin  = handleWinner(players, explosionPieces, numToWin, screen, font, 
+        tempState, winning_players, kdrTimer  = handleWinner(players, explosionPieces, kdrTimer, screen, font, 
                                                     state, allControls, sounds)
         if tempState == "winner":
             state = "winner"

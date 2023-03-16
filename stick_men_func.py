@@ -157,8 +157,6 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
 
             if len(winning_players) == 1: #only play a sound if there is one winner
                 playSound(sounds['win' + str(winning_players[0].id)])
-            
-            amount = 5
 
             state = "winner"
 
@@ -225,7 +223,7 @@ def drawWinScreen(screen, winning_players, explosionPieces, font, gamemode):
     text_rect = text.get_rect(center=(500, 350))
     screen.blit(text, text_rect)
 
-def printTopVals(state, numToWin, players, screen, font):
+def printTopVals(state, numToWin, kdrTimer, players, screen, font):
     "Prints out the values at the top of the in game screen"
  
     if state == "Team Deathmatch":
@@ -248,7 +246,7 @@ def printTopVals(state, numToWin, players, screen, font):
     if state != "Timed KDR":
         text = font.render("Needs " + str(numToWin) + " to win", True, (255, 255, 255))
     else:
-        text = font.render(str(round(numToWin, 3)) + " minutes left", True, (255, 255, 255))
+        text = font.render(str(round(kdrTimer, 3)) + " minutes left", True, (255, 255, 255))
     
     text_rect = text.get_rect(center=(500, 40))
     screen.blit(text, text_rect)
@@ -375,9 +373,9 @@ def updateAll(bullets, hats, players, platforms, explosionPieces, allControls, s
 
     checkForBulletCollis(bullets, platforms)
 
-def drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state, numToWin):
+def drawAll(screen, font, bullets, players, hats, platforms, explosionPieces, state, numToWin, kdrTimer):
     
-    printTopVals(state, numToWin, players, screen, font)
+    printTopVals(state, numToWin, kdrTimer, players, screen, font)
     
     #draw all sprites
     for bullet in bullets:
