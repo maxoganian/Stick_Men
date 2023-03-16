@@ -95,7 +95,7 @@ def updateState(allControls, state):
     else:
         return oldState
 
-def handleWinner(players, explosionPieces, amount, screen, font, state, allControls, sounds, hasNotPlayed = True, time = 0):
+def handleWinner(players, explosionPieces, amount, kdrTimer, screen, font, state, allControls, sounds, hasNotPlayed = True):
     winning_players = []
 
     if state == "Deathmatch": 
@@ -145,10 +145,10 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
     elif state == "Timed KDR":
         
         #since we run at 30 fps this counts in minutes
-        amount -= (1/30)/60
-        #amount -= (1/30)
+        kdrTimer -= (1/30)/60
+        #kdrTimer -= (1/30)
         
-        if amount <= 0:
+        if kdrTimer <= 0:
             max = 0
             for player in players:
                 if player.kdr >= max:
@@ -160,9 +160,9 @@ def handleWinner(players, explosionPieces, amount, screen, font, state, allContr
 
             state = "winner"
 
-        #print(amount)
+        #print(kdrTimer)
 
-    return state, winning_players, amount
+    return state, winning_players, kdrTimer
 
 def checkForWinKills(player, amount):
     if player.kills >= amount:

@@ -42,13 +42,15 @@ def updateSelectState(allControls, press_count, v1, low, high, selectIndex, stat
 	if press_count < PRESS_TIME:
 		return (press_count, selectIndex, v1, state)
 	
-	v1 = round(v1, 0)
-
 	if mode == "KDR" or mode == "Timed KDR":
 		low = 1
 		high = 19
-		if v1 == 20:
+		if v1 >= 20:
 			v1 = 5
+	else: #reset numToWin, incase v1 equals a number like 9
+		if select_state[selectIndex] == 'numToWin' and v1%5 != 0:
+			v1 = 20
+	
 
 	if select_state[selectIndex] == 'numToWin' and mode != "KDR" and mode != "Timed KDR":
 		changeBy = 5

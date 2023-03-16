@@ -94,6 +94,8 @@ while running:
     #reset controls to false
     allControls = [False]*4
 
+
+
     for i in range(numPlayers):
         allControls[i] = getControls(i, joys, useJoys) 
 
@@ -165,7 +167,7 @@ while running:
 
         state = updateState(allControls, modes[modeIndex])
 
-        tempState, winning_players, kdrTimer  = handleWinner(players, explosionPieces, kdrTimer, screen, font, 
+        tempState, winning_players, kdrTimer  = handleWinner(players, explosionPieces, numToWin, kdrTimer, screen, font, 
                                                     state, allControls, sounds)
         if tempState == "winner":
             state = "winner"
