@@ -143,7 +143,6 @@ def handleWinner(players, explosionPieces, amount, kdrTimer, screen, font, state
                 state = "winner"
     
     elif state == "Timed KDR":
-        
         #since we run at 30 fps this counts in minutes
         kdrTimer -= (1/30)/60
         #kdrTimer -= (1/30)
