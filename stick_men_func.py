@@ -144,14 +144,20 @@ def handleWinner(players, explosionPieces, amount, kdrTimer, screen, font, state
     
     elif state == "Timed KDR":
         #since we run at 30 fps this counts in minutes
-        kdrTimer -= (1/30)/60
-        #kdrTimer -= (1/30)
+        #kdrTimer -= (1/30)/60
+        kdrTimer -= (1/30)
         
         if kdrTimer <= 0:
             max = 0
+            
+            #first find the max then append everyone at the max
+            #done this way cause its better :)
             for player in players:
                 if player.kdr >= max:
                     max = player.kdr
+            
+            for player in players:
+                if player.kdr >= max:        
                     winning_players.append(player)
 
             if len(winning_players) == 1: #only play a sound if there is one winner
